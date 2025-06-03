@@ -34,7 +34,7 @@ $(document).ready(function(){
     });
 
     var typed = new Typed(".typing-2", {
-        strings: ["Data Analyst", "Mathematician", "Problem-Solver"],
+        strings: ["Data Analyst", "Mathematician", "Problem-Solver", "Visual Storyteller"],
         typeSpeed: 100,
         backSpeed: 60,
         loop: true
