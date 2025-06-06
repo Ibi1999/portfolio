@@ -59,8 +59,10 @@ section {
     display: flex;
     flex-wrap: wrap;
     align-items: center;
-    justify-content: space-between;
+    gap: 30px;
+    justify-content: flex-start;
 }
+
 
 /* Section Title */
 section .title {
@@ -757,3 +759,4 @@ a:visited {
 a:hover {
     text-decoration: underline;
 }
+
