@@ -3,8 +3,10 @@ $(document).ready(function(){
         // sticky navbar on scroll script
         if(this.scrollY > 20){
             $('.navbar').addClass("sticky");
+            $('#logo-img').attr('src', 'images/logo_black.png');  // change to black logo on scroll
         }else{
             $('.navbar').removeClass("sticky");
+            $('#logo-img').attr('src', 'images/logo.png');        // revert to original logo when at top
         }
         
         // scroll-up button show/hide script
@@ -45,7 +47,7 @@ $(document).ready(function(){
         margin: 20,
         loop: true,
         autoplay: true,
-        autoplayTimeOut: 2000,
+        autoplayTimeout: 2000,  // fixed typo here (capital T)
         autoplayHoverPause: true,
         responsive: {
             0:{
@@ -62,8 +64,8 @@ $(document).ready(function(){
             }
         }
     });
-});
 
+    // Tab buttons script inside document ready
     const tabButtons = document.querySelectorAll('.tab-btn');
     const tabContents = document.querySelectorAll('.tab-content');
 
@@ -78,3 +80,5 @@ $(document).ready(function(){
             document.getElementById(button.getAttribute('data-tab')).classList.add('active');
         });
     });
+
+});
