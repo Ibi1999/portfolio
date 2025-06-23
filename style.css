@@ -310,9 +310,6 @@ section .title::after{
     font-weight: bold;
 }
 
-.projects .projects-content .card a {
-    font-weight: bold;
-}
 
 .projects .projects-content .card .box{
     transition: all 0.3s ease;
