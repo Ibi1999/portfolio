@@ -307,6 +307,11 @@ section .title::after{
 }
 .projects .projects-content .card:hover a {
     color: #111;
+    font-weight: bold;
+}
+
+.projects .projects-content .card a {
+    font-weight: bold;
 }
 
 .projects .projects-content .card .box{
@@ -687,3 +692,5 @@ a:hover {
 .contact-content a:hover {
     color: #1b73ad;
 }
+
+
