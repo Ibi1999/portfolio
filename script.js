@@ -82,3 +82,81 @@ $(document).ready(function(){
     });
 
 });
+
+particlesJS("particles-about", {
+  particles: {
+    number: { value: 50, density: { enable: true, value_area: 800 } },
+    color: { value: "#1b73ad" },
+    shape: { type: "circle" },
+    opacity: { value: 0.5 },
+    size: { value: 3 },
+    line_linked: { enable: true, color: "#1b73ad" },
+    move: { enable: true, speed: 0.5 }
+  },
+  interactivity: {
+    events: { onhover: { enable: true, mode: "repulse" } }
+  },
+  retina_detect: true
+});
+
+particlesJS("particles-skills", {
+  particles: {
+    number: { value: 50, density: { enable: true, value_area: 800 } },
+    color: { value: "#1b73ad" },
+    shape: { type: "circle" },
+    opacity: { value: 0.5 },
+    size: { value: 3 },
+    line_linked: { enable: true, color: "#1b73ad" },
+    move: { enable: true, speed: 0.5 }
+  },
+  interactivity: {
+    events: { onhover: { enable: true, mode: "grab" } }
+  },
+  retina_detect: true
+});
+
+// Force canvas resize after load to fix initial stretch
+window.addEventListener('load', function () {
+    setTimeout(() => {
+        window.dispatchEvent(new Event('resize'));
+    }, 100);
+});
+
+particlesJS("particles-projects", {
+  particles: {
+    number: { value: 60, density: { enable: true, value_area: 800 } },
+    color: { value: "#ffffff" },
+    shape: { type: "circle" },
+    opacity: { value: 0.6 },
+    size: { value: 2 },
+    line_linked: { enable: false }, // no lines
+    move: { enable: true, speed: 0.5 }
+  },
+  interactivity: {
+    events: {
+      onhover: { enable: false },
+      onclick: { enable: false }
+    }
+  },
+  retina_detect: true
+});
+
+particlesJS("particles-contact", {
+  particles: {
+    number: { value: 60, density: { enable: true, value_area: 800 } },
+    color: { value: "#ffffff" },
+    shape: { type: "circle" },
+    opacity: { value: 0.6 },
+    size: { value: 2 },
+    line_linked: { enable: false }, // no lines
+    move: { enable: true, speed: 0.5 }
+  },
+  interactivity: {
+    events: {
+      onhover: { enable: false },
+      onclick: { enable: false }
+    }
+  },
+  retina_detect: true
+});
+
