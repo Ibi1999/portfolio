@@ -45,7 +45,7 @@ section{
     flex-wrap: wrap;
     gap: 30px;
     align-items: center;
-    justify-content: flex-start;
+    justify-content: space-between;
 }
 
 section .title{
@@ -72,7 +72,7 @@ section .title::after{
     bottom: -8px;
     left: 50%;
     font-size: 20px;
-    color: #1b73ad;
+    color: #8a2be2;
     padding: 0 5px;
     background: #fff;
     transform: translateX(-50%);
@@ -91,7 +91,7 @@ section .title::after{
 }
 .navbar.sticky{
     padding: 15px 0;
-    background: #1b73ad;
+    background: #8a2be2;
 }
 
 .navbar .max-width{
@@ -106,7 +106,7 @@ section .title::after{
     size: 3px;
 }
 .navbar .logo a span{
-    color: #1b73ad;
+    color: #8a2be2;
     transition: all 0.3s ease;
 }
 .navbar.sticky .logo a span{
@@ -128,7 +128,7 @@ section .title::after{
 }
 
 .navbar .menu li a:hover{
-    color: #1b73ad;
+    color: #8a2be2;
 }
 .navbar.sticky .menu li a:hover{
     color: #fff;
@@ -145,7 +145,7 @@ section .title::after{
     position: fixed;
     height: 45px;
     width: 42px;
-    background: #1b73ad;
+    background: #8a2be2;
     right: 30px;
     bottom: 10px;
     text-align: center;
@@ -201,23 +201,23 @@ section .title::after{
     margin: 5px 0;
 }
 .home .home-content .text-3 span{
-    color: #1b73ad;
+    color: #8a2be2;
     font-weight: 500;
 }
 .home .home-content a{
     display: inline-block;
-    background: #1b73ad;
+    background: #8a2be2;
     color: #fff;
     font-size: 25px;
     padding: 12px 36px;
     margin-top: 20px;
     font-weight: 400;
     border-radius: 6px;
-    border: 2px solid #1b73ad;
+    border: 2px solid #8a2be2;
     transition: all 0.3s ease;
 }
 .home .home-content a:hover{
-    color: #1b73ad;
+    color: #8a2be2;
     background: none;
 }
 
@@ -235,7 +235,7 @@ section .title::after{
     border-radius: 6px;
 }
 .about .about-content .right{
-    width: 65%;
+    width: 55%;
 }
 .about .about-content .right .text{
     font-size: 25px;
@@ -243,25 +243,25 @@ section .title::after{
     margin-bottom: 10px;
 }
 .about .about-content .right .text span{
-    color: #1b73ad;
+    color: #8a2be2;
 }
 .about .about-content .right p{
     text-align: justify;
 }
 .about .about-content .right a{
     display: inline-block;
-    background: #1b73ad;
+    background: #8a2be2;
     color: #fff;
     font-size: 20px;
     font-weight: 500;
     padding: 10px 30px;
     margin-top: 20px;
     border-radius: 6px;
-    border: 2px solid #1b73ad;
+    border: 2px solid #8a2be2;
     transition: all 0.3s ease;
 }
 .about .about-content .right a:hover{
-    color: #1b73ad;
+    color: #8a2be2;
     background: none;
 }
 
@@ -275,21 +275,13 @@ section .title::after{
     background: #fff;
 }
 .projects .title::after {
-    content: "what i developed";
+    content: "what I developed";
     display: block;
-    color: #1b73ad;
+    font-size: 16px;
+    color: #8a2be2;
     background:#111;
     margin-top: 10px;
     text-align: center;
-}
-
-.tab-content .section-subtitle {
-    display: block;
-    text-align: center;
-    margin-bottom: 32px;
-    margin-top: 5px;
-    font-size: 1.1em;
-    color: #fff;
 }
 
 .projects .projects-content .card{
@@ -303,13 +295,11 @@ section .title::after{
     min-height: 350px;
 }
 .projects .projects-content .card:hover{
-    background: #1b73ad;
+    background: #8a2be2;
 }
 .projects .projects-content .card:hover a {
     color: #111;
-    font-weight: bold;
 }
-
 
 .projects .projects-content .card .box{
     transition: all 0.3s ease;
@@ -319,7 +309,7 @@ section .title::after{
 }
 .projects .projects-content .card i{
     font-size: 50px;
-    color: #1b73ad;
+    color: #8a2be2;
     transition: color 0.3s ease;
 }
 .projects .projects-content .card:hover i{
@@ -371,13 +361,10 @@ section .title::after{
     text-align: center;
     overflow: hidden;
     transition: all 0.3s ease;
-    min-height: 450px;
-    height: 420px;
-    display: flex;
-    flex-direction: column;
+    min-height: 400px;
 }
 .skills .carousel .card:hover{
-    background: #1b73ad;
+    background: #8a2be2;
 }
 .skills .carousel .card .box{
     display: flex;
@@ -399,7 +386,7 @@ section .title::after{
     width: 150px;
     object-fit: cover;
     border-radius: 50%;
-    border: 5px solid #1b73ad;
+    border: 5px solid #8a2be2;
     transition: all 0.3s ease;
 }
 .skills .carousel .card:hover img{
@@ -415,7 +402,7 @@ section .title::after{
     margin: 0 5px;
     outline: none!important;
     border-radius: 50%;
-    border: 2px solid #1b73ad!important;
+    border: 2px solid #8a2be2!important;
     transition: all 0.3s ease;
 }
 .owl-dot.active{
@@ -424,7 +411,7 @@ section .title::after{
 }
 .owl-dot.active,
 .owl-dot:hover{
-    background: #1b73ad!important;
+    background: #8a2be2!important;
 }
 
 /* contact section styling */
@@ -450,7 +437,7 @@ section .title::after{
 }
 .contact .contact-content .card i{
     font-size: 50px;
-    color: #1b73ad;
+    color: #8a2be2;
     transition: color 0.3s ease;
 }
 .contact .contact-content .card:hover i{
@@ -469,7 +456,7 @@ footer{
     text-align: center;
 }
 footer span a{
-    color: #1b73ad;
+    color: #8a2be2;
     text-decoration: none;
 }
 footer span a:hover{
@@ -500,15 +487,15 @@ footer span a:hover{
 
 .tab-btn:hover {
     background-color: white;
-    border: 2px solid #1b73ad;
-    color: #1b73ad;
+    border: 2px solid #8a2be2;
+    color: #8a2be2;
     text-decoration: underline;
 }
 
 .tab-btn.active {
-    background-color: #1b73ad;
+    background-color: #8a2be2;
     color: white;
-    border: 2px solid #1b73ad;
+    border: 2px solid #8a2be2;
 }
 
 .tab-content {
@@ -521,7 +508,7 @@ footer span a:hover{
 
 a,
 a:visited {
-    color: #1b73ad;
+    color: #8a2be2;
     text-decoration: none;
 }
 
@@ -677,177 +664,3 @@ a:hover {
         align-items: center;
     }
 }
-
-.contact-link:hover {
-    text-decoration: underline;
-}
-
-.contact-content a {
-    color: #fff;
-}
-
-.contact-content a:hover {
-    color: #1b73ad;
-}
-
-#particles-about {
-  position: absolute;
-  top: 0;
-  left: 0;
-  height: 100%;
-  width: 100%;
-  z-index: 0;
-  pointer-events: none;
-}
-
-
-.about{
-    position: relative;
-    overflow: hidden;
-    z-index: 1;
-}
-
-#particles-skills {
-  position: absolute;
-  top: 0;
-  left: 0;
-  right: 0;
-  bottom: 0;
-  z-index: 0;
-  pointer-events: none;
-}
-.skills {
-  position: relative;
-  overflow: hidden;
-}
-
-#particles-skills canvas {
-  width: 100% !important;
-  height: 100% !important;
-}
-
-/* Particle background */
-#particles-projects,
-#particles-contact {
-  position: absolute;
-  top: 0; left: 0;
-  width: 100%;
-  height: 100%;
-  z-index: 0; /* keep it behind */
-  pointer-events: none;
-}
-
-/* Make sure the container has stacking context */
-.projects,
-.contact {
-  position: relative;
-  overflow: hidden;
-  z-index: 1;
-}
-
-/* Ensure content sits above particles */
-.projects .max-width,
-.contact .max-width {
-  position: relative;
-  z-index: 2;
-}
-
-.projects .max-width,
-.contact .max-width {
-  background-color: rgba(17, 17, 17, 0.9); /* slight backdrop if needed */
-  border-radius: 6px;
-  padding: 20px;
-}
-
-.glow-logo {
-  transition: all 0.3s ease;
-}
-
-/* Glow effect on hover */
-.glow-logo:hover {
-  filter: drop-shadow(0 0 8px #1b73ad);
-  transform: scale(1.05);
-}
-
-.glow-logo:hover {
-  filter: drop-shadow(0 0 6px #1b73ad) drop-shadow(0 0 12px #1b73ad);
-  transform: scale(1.07);
-}
-
-.navbar .menu li a:hover {
-  color: #1b73ad;
-  text-shadow:
-    0 0 5px #1b73ad,
-    0 0 10px #1b73ad,
-    0 0 20px #1b73ad;
-  transition: all 0.3s ease;
-}
-
-
-.navbar.sticky .menu li a:hover {
-  color: #fff;
-  text-shadow:
-    0 0 5px #ffffff,
-    0 0 10px #ffffff,
-    0 0 20px #ffffff;
-}
-
-.navbar.sticky #logo-img:hover {
-  filter: drop-shadow(0 0 6px white) drop-shadow(0 0 12px white);
-  transition: all 0.3s ease;
-}
-
-
-.navbar .menu li a,
-.navbar .menu li a:visited,
-.navbar .menu li a:hover,
-.navbar .menu li a:active {
-  text-decoration: none;
-}
-
-
-.projects a,
-.projects a:visited {
-  text-decoration: none;
-  color: #1b73ad; /* or your default link color */
-  transition: all 0.3s ease;
-}
-
-.projects a:hover {
-  text-decoration: none;
-  color: white;
-  text-shadow:
-    0 0 5px white,
-    0 0 10px white,
-    0 0 15px white;
-    font-weight: bold;
-}
-
-/* Only make "My Projects" glow */
-#projects .title,
-#contact .title { 
-  text-shadow:
-    0 0 2px #1b73ad,
-    0 0 4px #1b73ad,
-    0 0 6px #1b73ad;
-}
-
-/* Ensure "what i developed" does NOT glow */
-.projects .title::after,
-.contact .title::after {
-  text-shadow: none;
-}
-
-.projects .projects-content .card {
-  transition: all 0.3s ease;
-  box-shadow: 0 0 0px transparent; /* default: no glow */
-}
-
-.projects .projects-content .card {
-  box-shadow:
-    0 0 4px #1b73ad,
-    0 0 8px #1b73ad,
-    0 0 12px #1b73ad;
-}
-
-
