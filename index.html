@@ -1,9 +1,21 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
+    
+    <script src="https://cdn.jsdelivr.net/npm/particles.js"></script>
+    <!-- Google tag (gtag.js) -->
+    <script async src="https://www.googletagmanager.com/gtag/js?id=G-85P13EFCGC"></script>
+    <script>
+    window.dataLayer = window.dataLayer || [];
+    function gtag(){dataLayer.push(arguments);}
+    gtag('js', new Date());
+
+    gtag('config', 'G-85P13EFCGC');
+    </script>
+    
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Aarshika Singh</title>
+    <title>Ibrahim Oksuzoglu</title>
     <link rel="stylesheet" href="style.css">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.3/css/all.min.css"/>
     <script src="https://code.jquery.com/jquery-3.5.1.min.js"></script>
@@ -18,8 +30,9 @@
         <i class="fas fa-angle-up"></i>
     </div>
     <nav class="navbar">
+        <div id="particles-navbar"></div>
         <div class="max-width">
-            <div class="logo"><img src="images/logo.webp" style="height:30px; width:30px;"></div>
+            <div class="logo"><img id="logo-img" src="images/logo.png" style="height:30px; width:60px;" class="glow-logo" alt="Logo"></div>
             <ul class="menu">
                 <li><a href="#about" class="menu-btn">About</a></li>
                 <li><a href="#projects" class="menu-btn">Projects</a></li>
@@ -35,215 +48,219 @@
 
     <!-- about section start -->
     <section class="about" id="about">
+        <div id="particles-about"></div>
         <div class="max-width">
             <h2 class="title">About me</h2>
             <div class="about-content">
                 <div class="column right">
-                    <div class="text">I'm Aarshika Singh and I'm a <span class="typing-2"></span></div>
-                    <p>I am exploring new opportunities to put my skills to use for wide range of audience.</p>
-                        <a class="btn line-btn-dark btn-icon btn-radius" href="Aarshika Singh.pdf" title="" download> Download CV</a>
+                    <div class="text">I'm Ibrahim Oksuzoglu and I'm a <span class="typing-2"></span></div>
+                    <p>Data Analyst with a First-Class Mathematics Degree and strong skills in Python, statistical modelling and experience in predictive analytics, clustering, and sentiment analysis using real-world datasets.</p>
+                        <a class="btn line-btn-dark btn-icon btn-radius" href="Ibrahim Oksuzoglu CV.pdf" target="_blank" rel="noopener noreferrer">Download CV</a>
                 </div>
             </div>
         </div>
     </section>
 
 <!-- projects section start -->
-<section class="projects" id="projects">
-    <div class="max-width">
-        <h2 class="title">My Projects</h2>
+    <section class="projects" id="projects">
+        <div id="particles-projects"></div>
+        <div class="max-width">
+            <h2 class="title">My Projects</h2>
 
-        <!-- Tabs Navigation -->
-        <div class="tabs">
-            <button class="tab-btn active" data-tab="ml">Machine Learning Projects</button>
-            <button class="tab-btn" data-tab="dashboard">Dashboard Projects</button>
-            <button class="tab-btn" data-tab="archived">Archived Projects</button>
-        </div>
+            <!-- Tabs Navigation -->
+            <div class="tabs">
+                <button class="tab-btn active" data-tab="ml">Machine Learning Projects</button>
+                <button class="tab-btn" data-tab="dashboard">Dashboard Projects</button>
+            </div>
 
-        <!-- Tab Content: Machine Learning Projects -->
-        <div class="tab-content active" id="ml">
-             <div class="projects-content">
+            <!-- Tab Content: Machine Learning Projects -->
+            <div class="tab-content active" id="ml">
+                <p class="section-subtitle">A showcase of Machine learning projects turning complex data into smart predictions.</p>
+                    <div class="projects-content">
 
-                <div class="card">
-                    <div class="box">
-                        <i class="fas fa-robot"></i>
-                        <div class="text">Clustering - Football Attributes</div>
-                        <p>Utilising Machine Learning to visually see K-Means Clustering to group teams & players with similar profiles.</p>
-                        <a href="https://appclustering-myrbfbrv3khmwbpxt9ktez.streamlit.app/" target="_blank">Click to View</a>
-                    </div>
+                        <div class="card">
+                            <div class="box">
+                                <i class="fas fa-cogs"></i>
+                                <div class="text">Optimiser - Fantasy Football</div>
+                                <p>Machine Learning Tools to Predict player scores and optimise player picks to maximise points</p>
+                                <a href="https://fploptimiser-bcwqgawjkb2446ahkwdbet.streamlit.app/" target="_blank">View App</a>
+                                <br>
+                                <a href="reports\Optimiser Project Report.pdf" target="_blank">View Project Report</a>
+                            </div>
+                        </div>
+
+                        <div class="card">
+                            <div class="box">
+                                <i class="fas fa-robot"></i>
+                                <div class="text">Clustering - Football Attributes</div>
+                                <p>Utilising K-Means Clustering to group teams & players with similar profiles for complex comparisons.</p>
+                                <a href="https://appclustering-myrbfbrv3khmwbpxt9ktez.streamlit.app/" target="_blank">View App</a>
+                                <br>
+                                <a href="reports\Clustering Project Report.pdf" target="_blank">View Project Report</a>
+                            </div>
+                        </div>
+
+                        <div class="card">
+                            <div class="box">
+                                <i class="fas fa-chart-line"></i>
+                                <div class="text">Prediction - Football Results</div>
+                                <p>Utilising regression modelling and Machine Learning to predict Football game outcomes.</p>
+                                <a href="https://appfootballprediction-rpjynmuma2una2i2vsnrjr.streamlit.app/" target="_blank">View App</a>
+                                <br>
+                                <a href="reports\Match predictor Project Report.pdf" target="_blank">View Project Report</a>
+                            </div>
+                        </div>
+
+                        <div class="card">
+                            <div class="box">
+                                <i class="fas fa-smile"></i>
+                                <div class="text">Sentiment Analysis - Reviews</div>
+                                <p>Using Machine Learning models to predict the sentiment of movie reviews (positive, negative or neutral).</p>
+                                <a href="https://review-sentiment-analysis-with-ml.streamlit.app/" target="_blank">View App</a>
+                                <br>
+                                <a href="" target="_blank">-</a>
+                                </p>
+                            </div>
+                        </div>
                 </div>
+            </div>
+            
+            <!-- Tab Content: Dashboard Projects -->
+            <div class="tab-content" id="dashboard">
+                <p class="section-subtitle">A showcase of interactive dashboards transforming data into clear, actionable insights.</p>
+                    <div class="projects-content">
+                        <!-- Dashboard Project Card 1 -->
+                        <div class="card">
+                        <div class="box">
+                            <i class="fas fa-gamepad"></i>
+                            <div class="text">Dashboard - Video Games</div>
+                            <p>Interactive Dashboarding featuring some video games I have played in my lifetime</p>
+                            <p>
+                            <a href="https://videogamedashboard-zr8s6hyfnncr5tjb4edzou.streamlit.app/" target="_blank">View App</a>
+                            </p>
+                        </div>
+                        </div>
+                        <!-- Dashboard Project Card 2 -->
+                        <div class="card">
+                        <div class="box">
+                            <i class="fas fa-futbol"></i>
+                            <div class="text">Dashboard - Match Shots</div>
+                            <p>Dashboard which showcases shots in any Premier League football match with comparison distrubtions</p>
+                            <p>
+                            <a href="https://matchdashboard-jrwtvhbf37skhptlfrzdxg.streamlit.app/" target="_blank">View App</a>
+                            </p>
+                        </div>
+                        </div>
 
-                <div class="card">
-                    <div class="box">
-                        <i class="fas fa-chart-line"></i>
-                        <div class="text">Prediction - Football Results</div>
-                        <p>Utilising regression modelling and Machine Learning to predict Football games.</p>
-                        <a href="https://appfootballprediction-rpjynmuma2una2i2vsnrjr.streamlit.app/" target="_blank">Click to View</a>
-                    </div>
-                </div>
-
-                <div class="card">
-                    <div class="box">
-                        <i class="fas fa-smile"></i>
-                        <div class="text">Sentiment Analysis - Reviews</div>
-                        <p>Using Machine Learning models to predict the sentiment of movie reviews (positive, negative or neutral).</p>
-                        <a href="https://review-sentiment-analysis-with-ml.streamlit.app/" target="_blank">Click to View</a>
+                        <!-- Dashboard Project Card 3 -->
+                        <div class="card">
+                        <div class="box">
+                            <i class="fas fa-tachometer-alt"></i>
+                            <div class="text">Dashboard - Player Comparison</div>
+                            <p>Interactive dashboarding tool to compare football players statistics</p>
+                            <p>
+                            <a href="https://playercomparisondashboard-etfr73ibh3uukutgnsiodw.streamlit.app/" target="_blank">View App</a>
+                            </p>
+                        </div>
+                        </div>
                     </div>
                 </div>
             </div>
-        </div>
-
-        <!-- Tab Content: Dashboard Projects -->
-        <div class="tab-content" id="dashboard">
-            <div class="projects-content">
-                <div class="card">
-                    <div class="box">
-                        <i class="fas fa-tachometer-alt"></i>
-                        <div class="text">Dashboard - Player Comparison</div>
-                        <p>Interactive dashboarding by utilising various visualisation techniques to compare football players.</p>
-                        <a href="https://playercomparisondashboard-etfr73ibh3uukutgnsiodw.streamlit.app/" target="_blank">Click to View</a>
-                    </div>
-                </div>
-            </div>
-        </div>
-
-        <!-- Tab Content: Archived Projects -->
-        <div class="tab-content" id="archived">
-            <div class="projects-content">
-                <div class="card">
-                    <div class="box">
-                        <i class="fas fa-bug"></i>
-                        <div class="text">Track'em</div>
-                        <p>Django app with PostgreSQL database to track project bugs and issues.</p>
-                        <a href="https://trackem-bugtracker.herokuapp.com/" target="_blank">Click to View</a>
-                    </div>
-                </div>
-
-                <div class="card">
-                    <div class="box">
-                        <i class="far fa-file-excel"></i>
-                        <div class="text">Studyboard: Trello Clone</div>
-                        <p>A React and Redux app to make dynamic task lists.</p>
-                        <a href="https://studyboard.herokuapp.com/" target="_blank">Click to View</a>
-                    </div>
-                </div>
-
-                <div class="card">
-                    <div class="box">
-                        <i class="far fa-grin-beam"></i>
-                        <div class="text">Cryptotracker</div>
-                        <p>A React app to track cryptocurrency rates using API.</p>
-                        <a href="https://cryptotracker-aasingh.netlify.app/" target="_blank">Click to View</a>
-                    </div>
-                </div>
-
-                <div class="card">
-                    <div class="box">
-                        <i class="fas fa-chess"></i>
-                        <div class="text">Beer Game</div>
-                        <p>Supply chain game developed in agile environment. Technologies: React.js, Django, Flask, HTML, CSS.</p>
-                        <a href="https://github.com/Aarshika1/Beer-Game" target="_blank">Go to GitHub</a>
-                    </div>
-                </div>
-
-                <div class="card">
-                    <div class="box">
-                        <i class="fas fa-bread-slice"></i>
-                        <div class="text">BlendEats</div>
-                        <p>LAMP stack food exchange website. Technologies: HTML, CSS, PHP, MySQL, Bootstrap.</p>
-                        <a href="https://blendeats-foodapp.herokuapp.com/" target="_blank">Click to View</a>
-                    </div>
-                </div>
-
-                <div class="card">
-                    <div class="box">
-                        <i class="fas fa-calculator"></i>
-                        <div class="text">BASIC Interpreter</div>
-                        <p>BASIC interpreter for numerical operations with Python.</p>
-                        <a href="https://github.com/Aarshika1/BASIC-Interpreter" target="_blank">Go to GitHub</a>
-                    </div>
-                </div>
-            </div>
-        </div>
-    </div>
-</section>
+    </section>
 
 
     <!-- skills section start -->
     <section class="skills" id="skills">
+        <div id="particles-skills"></div>
         <div class="max-width">
             <h2 class="title">My skills</h2>
             <div class="carousel owl-carousel">
                 <div class="card">
                     <div class="box">
-                        <img src="images/frontend.jpg" alt="">
-                        <div class="text">Frontend Development</div>
-                        <p>Experienced in LAMP and MERN stack.Eager to learn more technologies.</p>
+                        <img src="images/statistics.jpg" alt="">
+                        <div class="text">Statistical Analysis</div>
+                        <p>Applying statistical techniques including A/B tests and hypothesis testing to drive data driven solutions.</p>
                     </div>
                 </div>
                 <div class="card">
                     <div class="box">
-                        <img src="images/backend.png" alt="">
-                        <div class="text">Backend Development</div>
-                        <p>Experienced in backend development with Flask, Django, PHP, MySQL and Apache.</p>
+                        <img src="images/visualization.jpg" alt="">
+                        <div class="text">Data Visualization</div>
+                        <p>Creating visual representations of data to communicate findings effectively using tools like Power BI.</p>
                     </div>
                 </div>
                 <div class="card">
                     <div class="box">
-                        <img src="images/ui.png" alt="">
-                        <div class="text">UI and UX Design</div>
-                        <p>Experienced with website prototyping, wireframing, developing sketches and flowchart, content creation and usability testing.</p>
+                        <img src="images/databricks.jpg" alt="">
+                        <div class="text">Databricks Proficiency</div>
+                        <p>Utilising Python and Spark within the Databricks environment for scalable data processing and analysis.</p>
                     </div>
                 </div>
                 <div class="card">
                     <div class="box">
-                        <img src="images/graphic.jpg" alt="">
-                        <div class="text">Graphic Design</div>
-                        <p>Experienced with design process using Adobe Creative Suite.</p>
+                        <img src="images/cleaning.jpg" alt="">
+                        <div class="text">Data Cleaning</div>
+                        <p>Transforming raw data into a usable format by correcting inaccuracies and removing inconsistencies.</p>
+                    </div>
+                </div>
+                <div class="card">
+                    <div class="box">
+                        <img src="images/Machine.jpg" alt="">
+                        <div class="text">Machine Learning</div>
+                        <p> Completed machine learning projects focused on predictive modelling, clustering and sentiment analysis with real-world datasets.</p>
                     </div>
                 </div>
             </div>
         </div>
     </section>
 
+
     <!-- contact section start -->
     <section class="contact" id="contact">
+        <div id="particles-contact"></div>
         <div class="max-width">
             <h2 class="title">Contact me</h2>
             <div class="contact-content">
-                        <div class="card">
-                            <div class="box">
-                                <i class="fas fa-phone"></i>
-                                <div class="text">Phone</div>
-                                <p>+49 157 32340447</p>
-                            </div>
-                        </div>
-                        <div class="card">
-                            <div class="box">
-                                <i class="fas fa-envelope-open-text"></i>
-                                <div class="text">Email</div>
-                                <p>aa.singh@jacobs-university.de</p>
-                            </div>
-                        </div>
-                        <div class="card">
-                            <div class="box">
-                                <i class="fas fa-location-arrow"></i>
-                                <div class="text">Address</div>
-                                <p>College Ring 4, Bremen, Germany</p>
-                            </div>
-                        </div>
+                <div class="card">
+                    <div class="box">
+                        <i class="fas fa-envelope-open-text"></i>
+                        <div class="text">Email</div>
+                        <p>ibrahimhuseyin23@gmail.com</p>
                     </div>
                 </div>
-            </section>
-
-    <!-- footer section start -->
+    
+                <div class="card">
+                    <div class="box">
+                        <i class="fab fa-linkedin"></i> <!-- LinkedIn icon -->
+                        <div class="text">LinkedIn</div>
+                        <p>
+                            <a href="https://www.linkedin.com/in/ibrahim-huseyin-oksuzoglu/" target="_blank" rel="noopener noreferrer">
+                               @ibrahim-oksuzoglu
+                            </a>
+                        </p>
+                    </div>
+                </div>
+    
+                <div class="card">
+                    <div class="box">
+                        <i class="fas fa-location-arrow"></i>
+                        <div class="text">Address</div>
+                        <p>London, United Kingdom</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+        <!-- footer section start -->
     <footer>
-        <span>What is my name ?| <span class="far fa-copyright"></span> 2021 by Aarshika Singh. All rights reserved.</span>
+        <span><span class="far fa-copyright"></span> 2025 by Ibrahim Oksuzoglu. All rights reserved.</span>
         <div>
-            <span><a href="https://github.com/Aarshika1">Github</a></span>
-            <span><a href="https://www.linkedin.com/in/aarshika-singh">LinkedIn</a></span>
+            <span><a href="https://github.com/Ibi1999">Github</a></span>
         </div>
     </footer>
 
+
     <script src="script.js"></script>
+
 </body>
 </html>

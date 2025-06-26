@@ -101,7 +101,7 @@ particlesJS("particles-about", {
 
 particlesJS("particles-skills", {
   particles: {
-    number: { value: 50, density: { enable: true, value_area: 800 } },
+    number: { value: 50, density: { enable: true, value_area: 400 } },
     color: { value: "#1b73ad" },
     shape: { type: "circle" },
     opacity: { value: 0.5 },
