@@ -933,6 +933,6 @@ footer {
 #particles-projects canvas,
 #particles-contact canvas,
 #particles-navbar canvas {
-  filter: drop-shadow(0 0 1px #ffffff) drop-shadow(0 0 2px #ffffff);
+  filter: drop-shadow(0 0 2px #ffffff);
 }
 
