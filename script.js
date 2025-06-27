@@ -88,7 +88,7 @@ particlesJS("particles-about", {
     number: { value: 50, density: { enable: true, value_area: 800 } },
     color: { value: "#1b73ad" },
     shape: { type: "circle" },
-    opacity: { value: 0.5 },
+    opacity: { value: 0.6 },
     size: { value: 3 },
     line_linked: { enable: true, color: "#1b73ad" },
     move: { enable: true, speed: 0.5 }
@@ -101,7 +101,7 @@ particlesJS("particles-about", {
 
 particlesJS("particles-skills", {
   particles: {
-    number: { value: 50, density: { enable: true, value_area: 400 } },
+    number: { value: 50, density: { enable: true, value_area: 800 } },
     color: { value: "#1b73ad" },
     shape: { type: "circle" },
     opacity: { value: 0.5 },

@@ -890,7 +890,7 @@ footer {
   font-family: 'Ubuntu', sans-serif;
   transition: all 0.3s ease;
   background: #111;
-  box-shadow: 0 6px 20px #1b73ad; /* ⬅️ Bottom-only glow */
+  box-shadow: 0 10px 30px #1b73ad; /* ⬅️ Bottom-only glow */
 }
 
 
@@ -899,4 +899,34 @@ footer {
   background: #1b73ad;
   box-shadow: none; /* Remove glow */
 }
+
+.about-box {
+  background: rgba(255, 255, 255, 0.74); /* semi-transparent white */
+  padding: 40px;
+  border-radius: 12px;
+  position: relative;
+  z-index: 2;
+  box-shadow: 0 0 0px rgba(0, 0, 0, 0.05);
+}
+
+.about-content {
+  z-index: 3;
+  position: relative;
+}
+
+#particles-about {
+  position: absolute;
+  top: 0;
+  left: 0;
+  height: 100%;
+  width: 100%;
+  z-index: 0;
+}
+
+.about {
+  position: relative;
+  overflow: hidden;
+  z-index: 1;
+}
+
 
