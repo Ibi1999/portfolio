@@ -930,3 +930,9 @@ footer {
 }
 
 
+#particles-projects canvas,
+#particles-contact canvas,
+#particles-navbar canvas {
+  filter: drop-shadow(0 0 6px #ffffff) drop-shadow(0 0 10px #ffffff);
+}
+
