@@ -314,9 +314,7 @@ section .title::after{
     transition: all 0.3s ease;
     min-height: 350px;
 }
-.projects .projects-content .card:hover{
-    background: #1b73ad;
-}
+
 .projects .projects-content .card:hover a {
     color: #1b73ad;
 }
