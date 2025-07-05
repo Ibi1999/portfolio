@@ -318,10 +318,8 @@ section .title::after{
     background: #1b73ad;
 }
 .projects .projects-content .card:hover a {
-    color: #111;
-    font-weight: bold;
+    color: #1b73ad;
 }
-
 
 .projects .projects-content .card .box{
     transition: all 0.3s ease;
@@ -936,3 +934,95 @@ footer {
   filter: drop-shadow(0 0 2px #ffffff);
 }
 
+.about .about-content {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: 40px;
+    flex-wrap: nowrap;
+}
+
+.about .about-content .left,
+.about .about-content .right {
+    flex: 1;
+}
+
+.about .about-content .right img {
+    max-width: 100%;
+    height: auto;
+    display: block;
+    margin: 0 auto;
+}
+
+.about .about-content .right img {
+    max-width: 400px;
+    height: auto;
+}
+.about .max-width {
+    max-width: 1500px;
+    padding: 0 80px;
+    margin: auto;
+}
+
+@media (max-width: 947px) {
+    .about .about-content {
+        flex-direction: column;
+    }
+
+    .about .about-content .right {
+        order: 1; /* text block */
+    }
+
+    .about .about-content .left {
+        order: 2; /* image block */
+        margin-top: 25px;
+        display: flex;
+        justify-content: center;
+    }
+}
+
+@media (max-width: 600px) {
+  .about .max-width {
+    max-width: 100% !important;
+    padding: 0 16px !important;
+  }
+
+  .about .about-content .right,
+  .about .about-content .left {
+    width: 100% !important;
+  }
+
+  .about .about-content .right p {
+    text-align: left !important;
+  }
+}
+
+
+.btn-solid:hover {
+  background-color: #fff;
+}
+
+.project-buttons {
+  margin-top: 15px;
+}
+
+.button-style {
+    min-width: 120px;
+    padding: 10px 15px;
+    font-family: 'Poppins', sans-serif;
+    font-size: 14px;
+    text-align: center;
+    border-radius: 6px;
+    background-color: #333;
+    color: #fff;
+    border: 2px solid transparent;
+    transition: background 0.3s ease, border 0.3s ease, color 0.3s ease;
+    cursor: pointer;
+}
+
+.button-style:hover {
+    background-color: white;
+    border: 2px solid #1b73ad;
+    color: #1b73ad;
+    text-decoration: underline;
+}
