@@ -10,6 +10,7 @@
 
   gtag('config', 'G-85P13EFCGC');
   </script>
+  <script src="https://cdn.jsdelivr.net/npm/typed.js@2.0.12"></script>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Ibrahim Oksuzoglu | Portfolio</title>
@@ -670,9 +671,11 @@
   <div class="container hero-wrapper">
     <div class="hero-text">
       <h1>Hi, I'm <span>Ibrahim</span></h1>
-      <p>Data analyst</p>
 
-      <h3 style="font-size:1.4rem;color:var(--secondary);margin-top:1.8rem;">Data & Tech Enthusiast</h3>
+      <h3 style="font-size:1.4rem;color:var(--secondary);margin-top:1.8rem;">
+        <span id="typed-text"></span>
+      </h3>
+
       <p style="font-size:1rem;color:var(--subtext);margin-bottom:1.5rem;">
         I'm a passionate professional with a First-Class Mathematics Degree and strong skills in Python, statistical modelling and experience in predictive analytics, clustering, and sentiment analysis using real-world datasets.
       </p>
@@ -703,14 +706,7 @@
       <div class="tab-content active" id="ml">
         <p class="section-subtitle" style="text-align:center;margin-bottom:1.5rem;">Real‑world ML projects showcasing analytical depth and predictive modeling.</p>
         <div class="projects-grid">
-          <div class="project-card">
-            <div class="icon"><i class="fas fa-smile"></i></div>
-            <h3>Sentiment Analysis</h3>
-            <p>Using Machine Learning models to predict the sentiment of movie reviews</p>
-            <div class="links">
-              <a href="https://review-sentiment-analysis-with-ml.streamlit.app/" target="_blank">Live Demo</a>
-            </div>
-          </div>
+
           <div class="project-card">
             <div class="icon"><i class="fas fa-cogs"></i></div>
             <h3>FPL Optimiser</h3>
@@ -728,6 +724,15 @@
             <div class="links">
               <a href="https://appclustering-myrbfbrv3khmwbpxt9ktez.streamlit.app/" target="_blank">Live Demo</a>
               <a href="documents\Clustering Project Report.pdf" target="_blank">Project Review</a>
+            </div>
+          </div>
+
+          <div class="project-card">
+            <div class="icon"><i class="fas fa-smile"></i></div>
+            <h3>Sentiment Analysis</h3>
+            <p>Using Machine Learning models to predict the sentiment of movie reviews</p>
+            <div class="links">
+              <a href="https://review-sentiment-analysis-with-ml.streamlit.app/" target="_blank">Live Demo</a>
             </div>
           </div>
 
@@ -922,6 +927,18 @@
       alert('Thanks for reaching out — I’ll reply soon!');
       history.replaceState(null, '', location.pathname + location.hash);
     }
+
+    // --- Typing animation for tagline ---
+
+    var typed = new Typed("#typed-text", {
+      strings: ["Data Analyst","Machine Learning Enthusiast", "Problem Solver", "Data Storyteller"],
+      typeSpeed: 50,
+      backSpeed: 30,
+      backDelay: 1500,
+      loop: true
+    });
+
+
 
 
   </script>
