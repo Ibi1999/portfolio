@@ -21,7 +21,7 @@
   <style>
   :root {
     --nav-height: 76px;
---bg:        #e3f0f8;      /* soft blue-tinted backdrop         */
+--bg:        #deebf5;      /* soft blue-tinted backdrop         */
 --card-bg:   #ffffff;      /* white cards                       */
 --primary:   #1b73ad;      /* vibrant deep blue (main color)    */
 --secondary: #5ca8dc;      /* lighter sky blue for icons/glow   */
@@ -644,6 +644,43 @@
       font-size: 1rem;
     }
   }
+  /* Button shimmer */
+  .btn-primary {
+    position: relative;
+    overflow: hidden;
+  }
+  .btn-primary::before {
+    content: "";
+    position: absolute;
+    top: 0; left: -75%;
+    width: 50%; height: 100%;
+    background: linear-gradient(120deg, transparent, rgba(255,255,255,0.4), transparent);
+    transform: skewX(-25deg);
+  }
+  .btn-primary:hover::before {
+    left: 125%;
+    transition: left 0.6s ease;
+  }
+  ::-webkit-scrollbar {
+  width: 8px;
+  }
+  ::-webkit-scrollbar-track {
+    background: var(--bg);
+  }
+  ::-webkit-scrollbar-thumb {
+    background: var(--primary);
+    border-radius: 4px;
+  }
+
+  .rotate {
+  animation: spin 0.3s ease;
+  }
+  @keyframes spin {
+    from { transform: rotate(0deg); }
+    to   { transform: rotate(360deg); }
+  }
+
+
 </style>
 </head>
 <body>
@@ -659,7 +696,7 @@
           <li><a href="#skills">Skills</a></li>
           <li><a href="#contact">Contact</a></li>
         </ul>
-        <button id="themeToggle" aria-label="Toggle dark / light">
+        <button id="themeToggle" aria-label="Toggle theme" title="Toggle light/dark mode">
           <i class="fa-solid fa-moon"></i>
         </button>
       </nav>
@@ -846,7 +883,7 @@
           <input type="hidden" name="_subject" value="New portfolio message">
           <input type="hidden" name="_redirect" value="https://ibrahimoksuzoglu.com/?sent#contact">
           <textarea name="message" placeholder="Your Message" required></textarea>
-          <button type="submit">Send Message</button>
+          <button type="submit" class="btn-primary">Send Message</button>
         </form>
       </div>
     </div>
@@ -938,9 +975,12 @@
       backDelay: 1500,
       loop: true
     });
-
-
-
+    
+    // Animation toggle for dark mode button
+    themeToggle.addEventListener('click', () => {
+    themeToggle.classList.add('rotate');
+    setTimeout(() => themeToggle.classList.remove('rotate'), 300);
+    });
 
   </script>
 </body>
