@@ -661,6 +661,18 @@
     left: 125%;
     transition: left 0.6s ease;
   }
+
+  .tab-btn {
+    transition: transform 0.3s ease, box-shadow 0.3s ease;
+  }
+
+  .tab-btn:hover {
+    transform: translateY(-4px);
+    box-shadow: 0 8px 20px rgba(0, 0, 0, 0.15);
+  }
+
+
+  /* scrollbar custom */
   ::-webkit-scrollbar {
   width: 8px;
   }
@@ -672,6 +684,7 @@
     border-radius: 4px;
   }
 
+  /* animation for dark mode button */
   .rotate {
   animation: spin 0.3s ease;
   }
