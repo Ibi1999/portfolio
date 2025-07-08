@@ -693,6 +693,55 @@
     to   { transform: rotate(360deg); }
   }
 
+  /* Project card hover effect */
+  .floating-preview {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 420px;
+    height: auto;
+    pointer-events: none;
+    border-radius: 8px;
+    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.3);
+    opacity: 0;
+    transition: opacity 0.2s ease;
+    z-index: 9999;
+  }
+
+  .floating-preview img {
+    width: 100%;
+    display: block;
+    border-radius: 8px;
+    border: 2px solid #1b73ad; /* Border in same blue as your caption */
+    box-sizing: border-box;
+  }
+
+  .floating-preview {
+  transform: scale(0.95);
+  opacity: 0;
+  transition: opacity 0.3s ease, transform 0.3s ease;
+  background: #1b73ad; /* optional background */
+  overflow: hidden;
+  }
+
+  .floating-preview.active {
+    opacity: 1;
+    transform: scale(1);
+  }
+
+  .preview-caption {
+    padding: 0.5rem -1rem;
+    text-align: center;
+    font-size: 0.9rem;
+    font-weight: 500;
+    color: #ffffff;
+    background: #1b73ad;
+    border-radius: 0 0 8px 8px;
+    transition: background 0.3s ease;
+  }
+
+
+
 
 </style>
 </head>
@@ -763,7 +812,7 @@
             <h3>FPL Optimiser</h3>
             <p>Machine Learning Tools to Predict player scores and optimise player picks to maximise points</p>
             <div class="links">
-              <a href="https://fploptimiser-bcwqgawjkb2446ahkwdbet.streamlit.app/" target="_blank">Live Demo</a>
+              <a href="https://fploptimiser-bcwqgawjkb2446ahkwdbet.streamlit.app/" class="project-btn with-preview" data-preview="images/optimiser.gif" target="_blank">Live Demo</a>
               <a href="documents/Optimiser Project Report.pdf" target="_blank">Project Review</a>
             </div>
           </div>
@@ -773,7 +822,7 @@
             <h3>Football Clustering</h3>
             <p>Utilising K-Means Clustering to group teams & players with similar profiles for complex comparisons.</p>
             <div class="links">
-              <a href="https://appclustering-myrbfbrv3khmwbpxt9ktez.streamlit.app/" target="_blank">Live Demo</a>
+              <a href="https://appclustering-myrbfbrv3khmwbpxt9ktez.streamlit.app/" class="project-btn with-preview" data-preview="images/clustering.gif" target="_blank">Live Demo</a>
               <a href="documents\Clustering Project Report.pdf" target="_blank">Project Review</a>
             </div>
           </div>
@@ -783,7 +832,7 @@
             <h3>Sentiment Analysis</h3>
             <p>Using Machine Learning models to predict the sentiment of movie reviews</p>
             <div class="links">
-              <a href="https://review-sentiment-analysis-with-ml.streamlit.app/" target="_blank">Live Demo</a>
+              <a href="https://review-sentiment-analysis-with-ml.streamlit.app/" class="project-btn with-preview" data-preview="images/sentiment.gif" target="_blank">Live Demo</a>
             </div>
           </div>
 
@@ -792,7 +841,7 @@
             <h3>Predicting Football Results</h3>
             <p>Utilising regression modelling and Machine Learning to predict Football game outcomes.</p>
             <div class="links">
-              <a href="https://appfootballprediction-rpjynmuma2una2i2vsnrjr.streamlit.app/" target="_blank">Live Demo</a>
+              <a href="https://appfootballprediction-rpjynmuma2una2i2vsnrjr.streamlit.app/" class="project-btn with-preview" data-preview="images/prediction.gif" target="_blank">Live Demo</a>
               <a href="documents\Match predictor Project Report.pdf" target="_blank">Project Review</a>
             </div>
           </div>
@@ -808,7 +857,7 @@
             <h3>Video Games</h3>
             <p>Interactive Dashboarding featuring some video games I have played in my lifetime.</p>
             <div class="links">
-              <a href="https://videogamedashboard-zr8s6hyfnncr5tjb4edzou.streamlit.app/" target="_blank">Live Demo</a>
+              <a href="https://videogamedashboard-zr8s6hyfnncr5tjb4edzou.streamlit.app/" class="project-btn with-preview" data-preview="images/game.gif"target="_blank">Live Demo</a>
             </div>
           </div>
           <div class="project-card">
@@ -816,7 +865,7 @@
             <h3>Match Shot Maps</h3>
             <p>Visual dashboard showcasing shots from Premier League games.</p>
             <div class="links">
-              <a href="https://matchdashboard-jrwtvhbf37skhptlfrzdxg.streamlit.app/" target="_blank">Live Demo</a>
+              <a href="https://matchdashboard-jrwtvhbf37skhptlfrzdxg.streamlit.app/" class="project-btn with-preview" data-preview="images/match.gif" target="_blank">Live Demo</a>
             </div>
           </div>
             <div class="project-card">
@@ -824,7 +873,7 @@
             <h3>Player Comparison</h3>
             <p>Explore football player performance using visual dashboards.</p>
             <div class="links">
-              <a href="https://playercomparisondashboard-etfr73ibh3uukutgnsiodw.streamlit.app/" target="_blank">Live Demo</a>
+              <a href="https://playercomparisondashboard-etfr73ibh3uukutgnsiodw.streamlit.app/" class="project-btn with-preview" data-preview="images/player.gif" target="_blank">Live Demo</a>
             </div>
           </div>
         </div>
@@ -994,6 +1043,34 @@
     themeToggle.classList.add('rotate');
     setTimeout(() => themeToggle.classList.remove('rotate'), 300);
     });
+
+      const previewBox = document.createElement("div");
+  previewBox.className = "floating-preview";
+  document.body.appendChild(previewBox);
+
+
+  // Gif preview functionality
+  const links = document.querySelectorAll(".with-preview");
+
+  links.forEach(link => {
+    link.addEventListener("mouseenter", (e) => {
+      const gifSrc = link.getAttribute("data-preview");
+      previewBox.innerHTML = `
+        <img src="${gifSrc}" alt="Preview">
+        <div class="preview-caption">Demo Preview</div>
+      `;
+      previewBox.classList.add("active");
+    });
+
+    link.addEventListener("mouseleave", () => {
+      previewBox.classList.remove("active");
+    });
+
+    link.addEventListener("mousemove", (e) => {
+      previewBox.style.top = `${e.clientY + 20}px`;
+      previewBox.style.left = `${e.clientX + 20}px`;
+    });
+  });
 
   </script>
 </body>
