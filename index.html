@@ -1191,10 +1191,27 @@ body:not(.dark) .starfield {
 
   // Starfield via canvas
 
+  let lastW = window.innerWidth;
+  let lastH = window.innerHeight;
+  let resizeTimeout;
+
+  window.addEventListener("resize", () => {
+    clearTimeout(resizeTimeout);
+    resizeTimeout = setTimeout(() => {
+      const w = window.innerWidth;
+      const h = window.innerHeight;
+      if (Math.abs(w - lastW) > 50 || Math.abs(h - lastH) > 50) {
+        lastW = w;
+        lastH = h;
+        init();
+      }
+    }, 150);
+  });
+
   document.addEventListener("DOMContentLoaded", () => {
   const canvas = document.querySelector(".starfield");
   const ctx    = canvas.getContext("2d");
-  let w, h, stars = [];
+  let w, h, dpr, stars = [];
 
   // Helper: hex → [r, g, b]
   function hexToRgb(hex) {
@@ -1205,27 +1222,30 @@ body:not(.dark) .starfield {
   }
 
   function init() {
-    w = window.innerWidth;
-    h = window.innerHeight;
-    canvas.width  = w;
-    canvas.height = h;
+    // 1) Measure in CSS‑pixels
+    w   = window.innerWidth;
+    h   = window.innerHeight;
+    dpr = window.devicePixelRatio || 1;
+
+    // 2) Create a high‑res buffer
+    canvas.width  = w * dpr;
+    canvas.height = h * dpr;
+    // 3) But display at CSS size
+    canvas.style.width  = w + "px";
+    canvas.style.height = h + "px";
+
+    // 4) Scale drawing ops so 1 unit = 1 CSS‑pixel
+    ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+
+    // 5) Build your stars array
     stars = [];
-
-    // ► STAR COUNT
     const count = Math.floor((w * h) / 7000);
-
     for (let i = 0; i < count; i++) {
       stars.push({
         x:     Math.random() * w,
         y:     Math.random() * h,
-
-        // ► STAR SIZE
         r:     Math.random() * 1 + 0.5,
-
-        // ► BASE ALPHA (for twinkle)
         alpha: Math.random(),
-
-        // ► VELOCITY
         vx:    (Math.random() - 0.5) * 0.1,
         vy:    (Math.random() - 0.5) * 0.1
       });
@@ -1233,48 +1253,42 @@ body:not(.dark) .starfield {
   }
 
   function draw() {
-    // pull the star color from CSS
+    // Pull the star color from your CSS custom property
     const hex = getComputedStyle(canvas)
-                  .getPropertyValue('--star-color').trim();
+                  .getPropertyValue("--star-color").trim();
     const [starR, starG, starB] = hexToRgb(hex);
 
     ctx.clearRect(0, 0, w, h);
 
     stars.forEach(s => {
-      // ► TWINKLE: jitter alpha up/down each frame
+      // Twinkle
       s.alpha += (Math.random() * 0.1 - 0.01);
       s.alpha = Math.min(1, Math.max(0, s.alpha));
 
-      // ► VERTICAL FADE: 1.0 at top → 0.0 at bottom (you can adjust exponent)
-      const pos = s.y / h;
-      const vertFade = 1 - Math.pow(pos, 0.3);
-
-      // ► COMBINE
+      // Vertical fade
+      const vertFade = 1 - Math.pow(s.y / h, 0.3);
       const finalAlpha = vertFade * s.alpha;
 
-      // ► DRAW STAR
+      // Draw star
       ctx.beginPath();
       ctx.arc(s.x, s.y, s.r, 0, Math.PI * 2);
       ctx.fillStyle = `rgba(${starR},${starG},${starB},${finalAlpha})`;
       ctx.fill();
 
-      // ► MOVE
-      s.x += s.vx;
-      s.y += s.vy;
-
-      // ► WRAP
-      if (s.x < 0)   s.x = w;
-      if (s.x > w)   s.x = 0;
-      if (s.y < 0)   s.y = h;
-      if (s.y > h)   s.y = 0;
+      // Move (with wrap)
+      s.x = (s.x + s.vx + w) % w;
+      s.y = (s.y + s.vy + h) % h;
     });
 
     requestAnimationFrame(draw);
   }
 
-  window.addEventListener("resize", init);
+  // Kick it off
   init();
   draw();
+
+  // Resize handler (rebuild on every real viewport change)
+  window.addEventListener("resize", init);
 });
 
 
