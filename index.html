@@ -1308,7 +1308,7 @@ body:not(.dark) .starfield {
       const nw = window.innerWidth;
       const nh = window.innerHeight;
       // only re-init if change > 50px in either dimension
-      if (Math.abs(nw - lastW) > 50 || Math.abs(nh - lastH) > 50) {
+      if (Math.abs(nw - lastW) > 1000 || Math.abs(nh - lastH) > 1000) {
         init();
       }
     }, 200);
