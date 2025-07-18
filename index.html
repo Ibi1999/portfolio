@@ -66,6 +66,21 @@
   html, body {
   overflow-x: hidden;
 }
+/* at the very top of your <style> */
+:root {
+  --nav-height: 76px;
+  /* … */
+}
+
+/* clip only the X axis, allow Y scrolling, and push content below the fixed header */
+html {
+  overflow-x: hidden;
+}
+body {
+  overflow-y: auto;
+  padding-top: var(--nav-height);
+}
+
 
 
 /* 2) Single unified glow layer, same position both modes */
@@ -189,14 +204,20 @@ body.dark::before {
     scroll-margin-top: calc(var(--nav-height) - 30px);
   }
 
-  header {
-    background: var(--bg);
-    position: sticky;
-    top: 0;
-    z-index: 100;
-    box-shadow: var(--shadow);
-    height: var(--nav-height);
-  }
+/* remove position: sticky */
+header {
+  background: var(--bg);
+  /* position: sticky; top:0; */
+  position: fixed;
+  top: 0; left: 0; right: 0;
+  z-index: 100;
+  box-shadow: var(--shadow);
+  height: var(--nav-height);
+}
+
+
+
+
 
   nav {
     display: flex;
@@ -1287,7 +1308,7 @@ body:not(.dark) .starfield {
       const nw = window.innerWidth;
       const nh = window.innerHeight;
       // only re-init if change > 50px in either dimension
-      if (Math.abs(nw - lastW) > 1000 || Math.abs(nh - lastH) > 1000) {
+      if (Math.abs(nw - lastW) > 50 || Math.abs(nh - lastH) > 50) {
         init();
       }
     }, 200);
