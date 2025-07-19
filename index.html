@@ -50,8 +50,8 @@
   }
 
   body.dark {
-    --bg:        #101921;       /* deep navy background */
-    --card-bg:   #1a2a38;       /* dark bluish-grey cards */
+    --bg:        #04111b;      /* deep navy background */
+    --card-bg:   #1a2a38;      /* dark bluish-grey cards */
     --primary:   #1b73ad;       /* vibrant deep blue (same as light) */
     --secondary: #3fa5d0;       /* soft cyan glow/icons */
     --accent:    #5eb5e0;       /* bright blue accent */
@@ -243,7 +243,7 @@ header {
   }
 
   body.dark header.scrolled{
-    background: rgb(26, 42, 56,0.75);
+    background: rgb(26, 42, 56,0.55);
   }
 
   nav ul {
@@ -340,6 +340,7 @@ header {
     box-shadow: var(--shadow);
     transition: transform 0.25s, box-shadow 0.25s;
   }
+  
 
   .btn-primary:hover {
     transform: translateY(-3px);
@@ -813,7 +814,7 @@ footer {
   z-index: 1;
 }
 
-.hero {
+.hero{
   /* keep just the accent‑gradient “glow” layers… */
   background:
     radial-gradient(1000px circle at -15% 25%, var(--accent) 0%, transparent 50%),
@@ -822,8 +823,8 @@ footer {
 }
 body.dark .hero {
   background:
-    radial-gradient(1000px circle at -15% 25%, rgba(255,255,255,.08) 0%, transparent 60%),
-    radial-gradient(800px  circle at 115% 10%, rgba(255,255,255,.08) 0%, transparent 60%);
+    radial-gradient(1000px circle at -15% 25%, rgba(255,255,255,.08) 0%, transparent 00%),
+    radial-gradient(800px  circle at 115% 10%, rgba(255,255,255,.08) 0%, transparent 00%);
 }
 
 /* Make sure body is the containing block */
