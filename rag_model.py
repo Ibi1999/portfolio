@@ -94,7 +94,7 @@ def get_rag_response(query: str, chat_history=None):
         history_str += "\n"
 
     custom_prompt = (
-        "You are a helpful assistant trained on Ibrahim's work and project documents and anything related to him.\n"
+        "You are a helpful assistant trained on Ibrahim. You know about his work and project documents and Hobbies.\n"
         "If the user asks a vague question, kindly guide them to ask about him or his work in data analysis, based on his projects.\n\n"
         f"{history_str}"
         f"User query: {query}"
