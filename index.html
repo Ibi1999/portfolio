@@ -1348,9 +1348,7 @@ body:not(.dark) .starfield {
     <div id="chat-suggestions">
       <span class="faq-question">Tell me about Ibrahim</span>
       <span class="faq-question">What are ibrahim's hobbies?</span>
-      <span class="faq-question">What skills does Ibrahim have?</span>
       <span class="faq-question">How to contact Ibrahim?</span>
-      <span class="faq-question">Tell me about the Clustering - Football Project</span>
       <span class="faq-question">Tell me about the LLM project</span>
     </div>
     <div id="chat-log"></div>
@@ -1580,7 +1578,7 @@ body:not(.dark) .starfield {
     toggleBtn.innerText = isOpen ? '💬 Open AI Assistant' : '❌ Minimise AI Assistant';
 
     if (!hasGreeted && !isOpen) {
-      addBotMessage("Ask me anything about <strong>Ibrahim</strong>, his projects, and his work.");
+      addBotMessage("Ask me anything about <strong>Ibrahim</strong>, if the chatbot is asleep give it 1-2 mins to wake up!");
       hasGreeted = true;
     }
   });
