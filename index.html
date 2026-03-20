@@ -284,6 +284,7 @@ header {
     transition: transform .25s;
   }
   #themeToggle:hover { transform: translateY(-2px); }
+  #themeToggle.rotate:hover { transform: none; }
 
 
   .hero {
@@ -749,6 +750,51 @@ header {
     to   { transform: rotate(360deg); }
   }
 
+  /* Scroll animations */
+  @keyframes fadeInUp {
+    from {
+      opacity: 0;
+      transform: translateY(30px);
+    }
+    to {
+      opacity: 1;
+      transform: translateY(0);
+    }
+  }
+
+  @keyframes slideInLeft {
+    from {
+      opacity: 0;
+      transform: translateX(-50px);
+    }
+    to {
+      opacity: 1;
+      transform: translateX(0);
+    }
+  }
+
+  @keyframes zoomIn {
+    from {
+      opacity: 0;
+      transform: scale(0.8);
+    }
+    to {
+      opacity: 1;
+      transform: scale(1);
+    }
+  }
+
+  .animate-on-scroll {
+    opacity: 0;
+    transform: translateY(30px);
+    transition: opacity 0.8s ease-out, transform 0.8s ease-out;
+  }
+
+  .animate-on-scroll.animate {
+    opacity: 1;
+    transform: translateY(0);
+  }
+
   /* Project card hover effect */
   .floating-preview {
     position: fixed;
@@ -931,7 +977,7 @@ body:not(.dark) .starfield {
   <!-- ========================= Projects ========================= -->
   <section id="projects">
     <div class="container">
-      <h2 class="section-title">My Projects</h2>
+      <h2 class="section-title animate-on-scroll">My Projects</h2>
 
       <div class="tabs">
         <button class="tab-btn active" data-tab="ml">AI & Machine Learning</button>
@@ -943,7 +989,7 @@ body:not(.dark) .starfield {
         <p class="section-subtitle" style="text-align:center;margin-bottom:1.5rem;">Real‑world ML projects showcasing analytical depth and predictive modeling.</p>
         <div class="projects-grid">
 
-          <div class="project-card">
+          <div class="project-card animate-on-scroll">
             <div class="icon"><i class="fas fa-robot"></i></div>
             <h3>Learning Language Model</h3>
             <p>Training a custom LLM to generate answers based on given context</p>
@@ -953,7 +999,7 @@ body:not(.dark) .starfield {
             </div>
           </div>
 
-          <div class="project-card">
+          <div class="project-card animate-on-scroll">
             <div class="icon"><i class="fas fa-cogs"></i></div>
             <h3>FPL Optimiser</h3>
             <p>Machine Learning Tools to Predict player scores and optimise player picks to maximise points</p>
@@ -963,7 +1009,7 @@ body:not(.dark) .starfield {
             </div>
           </div>
 
-          <div class="project-card">
+          <div class="project-card animate-on-scroll">
             <div class="icon"><i class="fas fa-circle-nodes"></i></div>
             <h3>Football Clustering</h3>
             <p>Utilising K-Means Clustering to group teams & players with similar profiles for complex comparisons.</p>
@@ -973,7 +1019,7 @@ body:not(.dark) .starfield {
             </div>
           </div>
 
-          <div class="project-card">
+          <div class="project-card animate-on-scroll">
             <div class="icon"><i class="fas fa-smile"></i></div>
             <h3>Sentiment Analysis</h3>
             <p>Using Machine Learning models to predict the sentiment of movie reviews</p>
@@ -982,7 +1028,7 @@ body:not(.dark) .starfield {
             </div>
           </div>
 
-          <div class="project-card">
+          <div class="project-card animate-on-scroll">
             <div class="icon"><i class="fas fa-chart-line"></i></div>
             <h3>Predicting Football Results</h3>
             <p>Utilising regression modelling and Machine Learning to predict Football game outcomes.</p>
@@ -998,7 +1044,7 @@ body:not(.dark) .starfield {
       <div class="tab-content" id="dashboard">
         <p class="section-subtitle" style="text-align:center;margin-bottom:1.5rem;">Interactive dashboards that deliver insights at a glance.</p>
         <div class="projects-grid">
-          <div class="project-card">
+          <div class="project-card animate-on-scroll">
             <div class="icon"><i class="fas fa-gamepad"></i></div>
             <h3>Video Games</h3>
             <p>Interactive Dashboarding featuring some video games I have played in my lifetime.</p>
@@ -1006,7 +1052,7 @@ body:not(.dark) .starfield {
               <a href="https://videogamedashboard-zr8s6hyfnncr5tjb4edzou.streamlit.app/" class="project-btn with-preview" data-preview="images/game.gif"target="_blank">Live Demo</a>
             </div>
           </div>
-          <div class="project-card">
+          <div class="project-card animate-on-scroll">
             <div class="icon"><i class="fas fa-futbol"></i></div>
             <h3>Match Shot Maps</h3>
             <p>Visual dashboard showcasing shots from Premier League games.</p>
@@ -1014,7 +1060,7 @@ body:not(.dark) .starfield {
               <a href="https://matchdashboard-jrwtvhbf37skhptlfrzdxg.streamlit.app/" class="project-btn with-preview" data-preview="images/match.gif" target="_blank">Live Demo</a>
             </div>
           </div>
-            <div class="project-card">
+            <div class="project-card animate-on-scroll">
             <div class="icon"><i class="fas fa-gauge-high"></i></div>
             <h3>Player Comparison</h3>
             <p>Explore football player performance using visual dashboards.</p>
@@ -1029,17 +1075,17 @@ body:not(.dark) .starfield {
   <!-- ========================= Skills ========================= -->
 <section id="skills">
   <div class="container">
-    <h2 class="section-title">Skills</h2>
+    <h2 class="section-title animate-on-scroll">Skills</h2>
     <div class="skill-cards">
       
-      <div class="skill-card">
+      <div class="skill-card animate-on-scroll">
         <h3><i class="fas fa-code"></i> Languages & DB</h3>
         <ul>
           <li>Python</li><li>R</li><li>SQL</li><li>VBA</li><li>MATLAB</li>
         </ul>
       </div>
 
-        <div class="skill-card">
+        <div class="skill-card animate-on-scroll">
         <h3><i class="fas fa-chart-bar"></i>Data</h3>
         <ul>
           <li>Pandas</li><li>PySpark</li>
@@ -1047,7 +1093,7 @@ body:not(.dark) .starfield {
         </ul>
       </div>
       
-      <div class="skill-card">
+      <div class="skill-card animate-on-scroll">
         <h3><i class="fas fa-brain"></i> AI & ML</h3>
         <ul>
           <li>Scikit-learn</li><li>TensorFlow</li>
@@ -1055,28 +1101,28 @@ body:not(.dark) .starfield {
         </ul>
       </div>
       
-      <div class="skill-card">
+      <div class="skill-card animate-on-scroll">
         <h3><i class="fas fa-chart-bar"></i> BI & Visualisation</h3>
         <ul>
           <li>Power BI</li><li>Excel</li><li>Data Cleaning</li><li>Dashboards</li>
         </ul>
       </div>
 
-      <div class="skill-card">
+      <div class="skill-card animate-on-scroll">
         <h3><i class="fas fa-database"></i> Big Data & Platforms</h3>
         <ul>
           <li>Databricks</li><li>PySpark</li>
         </ul>
       </div>
 
-      <div class="skill-card">
+      <div class="skill-card animate-on-scroll">
         <h3><i class="fas fa-globe"></i> Web & Tools</h3>
         <ul>
           <li>Streamlit</li><li>JIRA</li><li>Confluence</li><li>Miro</li>
         </ul>
       </div>
 
-      <div class="skill-card">
+      <div class="skill-card animate-on-scroll">
         <h3><i class="fas fa-people-arrows"></i> Soft Skills</h3>
         <ul>
           <li>Stakeholder Management</li><li>Team Collaboration</li><li>Analytical Thinking</li>
@@ -1091,7 +1137,7 @@ body:not(.dark) .starfield {
   <!-- ========================= Contact ========================= -->
   <section id="contact">
     <div class="container">
-      <h2 class="section-title">Get in Touch</h2>
+      <h2 class="section-title animate-on-scroll">Get in Touch</h2>
       <div class="contact-wrapper">
         <form class="contact-form" action="https://formspree.io/f/movwzlyo" method="POST">
           <input type="text" name="name" placeholder="Your Name" required />
@@ -1301,9 +1347,11 @@ body:not(.dark) .starfield {
 
       // vertical fade
       const vertFade = 1 - Math.pow(s.y / h, 0.3);
-      const finalAlpha = vertFade * s.alpha;
+      const finalAlpha = Math.min(1, vertFade * s.alpha * 1.5);
 
-      // draw
+      // draw with glow
+      ctx.shadowColor = `rgba(27, 115, 173, ${Math.min(1, finalAlpha * 1.2)})`;
+      ctx.shadowBlur = 18;
       ctx.beginPath();
       ctx.arc(s.x, s.y, s.r, 0, Math.PI * 2);
       ctx.fillStyle = `rgba(${starR},${starG},${starB},${finalAlpha})`;
@@ -1339,6 +1387,21 @@ body:not(.dark) .starfield {
     // small delay to let the new dimensions settle
     setTimeout(init, 300);
   });
+});
+
+// Scroll animations
+document.addEventListener("DOMContentLoaded", () => {
+  const observer = new IntersectionObserver((entries) => {
+    entries.forEach(entry => {
+      if (entry.isIntersecting) {
+        entry.target.classList.add('animate');
+      } else {
+        entry.target.classList.remove('animate');
+      }
+    });
+  }, { threshold: 0.1 });
+
+  document.querySelectorAll('.animate-on-scroll').forEach(el => observer.observe(el));
 });
   </script>
 
