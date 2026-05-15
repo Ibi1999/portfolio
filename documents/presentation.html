@@ -1,0 +1,1211 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Graph-Based Workforce Optimisation - How It Works</title>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+<script src="https://unpkg.com/vis-network@9.1.6/standalone/umd/vis-network.min.js"></script>
+<style>
+:root {
+  --green: #1b73ad; --green-d: #155f8f; --burgundy: #94385B;
+  --navy: #304B84; --steel: #5790B1; --orange: #D17437;
+  --gold: #E2A73F; --grey: #8E929F;
+  --bg: #f8fafb; --card: #ffffff; --text: #1f2937; --muted: #6b7280;
+}
+* { margin: 0; padding: 0; box-sizing: border-box; }
+html { scroll-behavior: smooth; }
+body { font-family: 'Inter', -apple-system, sans-serif; background: var(--bg); color: var(--text); line-height: 1.7; }
+
+/* ── Progress Bar ── */
+.progress-bar { position: fixed; top: 0; left: 0; height: 4px; background: linear-gradient(90deg, var(--green), var(--green-d)); width: 0%; z-index: 1000; transition: width 0.1s; }
+
+/* ── Navigation ── */
+nav { position: fixed; top: 4px; right: 24px; z-index: 999; display: flex; gap: 6px; padding: 10px 16px; background: rgba(255,255,255,0.95); border-radius: 30px; box-shadow: 0 2px 20px rgba(0,0,0,0.08); backdrop-filter: blur(10px); }
+nav a { text-decoration: none; font-size: 11px; font-weight: 600; color: var(--muted); padding: 6px 12px; border-radius: 16px; transition: 0.2s; }
+nav a:hover, nav a.active { background: var(--green); color: #fff; }
+
+/* ── Sections ── */
+section { min-height: 100vh; padding: 80px 40px; display: flex; align-items: center; justify-content: center; position: relative; }
+section:nth-child(even) { background: #fff; }
+.section-inner { max-width: 1100px; width: 100%; }
+
+/* ── Hero ── */
+.hero { min-height: 100vh; display: flex; flex-direction: column; align-items: center; justify-content: center; text-align: center; background: linear-gradient(160deg, #0e4e78 0%, #155f8f 45%, #1b73ad 100%); color: #fff; padding: 60px 40px; }
+.hero .ms-logo { display: flex; align-items: center; justify-content: center; margin-bottom: 30px; }
+.hero .ms-logo img { display: block; max-height: 44px; width: auto; height: auto; }
+.hero h1 { font-size: clamp(36px, 5vw, 64px); font-weight: 800; margin-bottom: 20px; line-height: 1.1; }
+.hero h1 span { color: #fff; text-decoration: underline; text-decoration-color: var(--gold); text-underline-offset: 8px; -webkit-text-fill-color: #fff; }
+.hero p { font-size: 20px; opacity: 0.85; max-width: 650px; margin-bottom: 40px; font-weight: 300; }
+.hero .scroll-hint { animation: bounce 2s infinite; font-size: 14px; opacity: 0.6; }
+@keyframes bounce { 0%,100% { transform: translateY(0); } 50% { transform: translateY(8px); } }
+
+/* ── Section Headers ── */
+.section-header { margin-bottom: 40px; }
+.section-header .step-badge { display: inline-flex; align-items: center; gap: 8px; background: var(--green); color: #fff; font-size: 12px; font-weight: 700; padding: 5px 14px; border-radius: 20px; margin-bottom: 12px; letter-spacing: 0.5px; }
+.section-header h2 { font-size: clamp(28px, 3.5vw, 42px); font-weight: 700; line-height: 1.2; margin-bottom: 12px; }
+.section-header p { font-size: 17px; color: var(--muted); max-width: 700px; }
+
+/* ── Cards ── */
+.card { background: var(--card); border-radius: 14px; padding: 28px; box-shadow: 0 4px 24px rgba(0,0,0,0.06); border: 1px solid rgba(0,0,0,0.04); }
+.grid-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 24px; }
+.grid-3 { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 20px; }
+@media (max-width: 768px) { .grid-2, .grid-3 { grid-template-columns: 1fr; } }
+
+/* ── Network containers ── */
+.network-box { width: 100%; height: 420px; border-radius: 12px; border: 1px solid rgba(0,0,0,0.08); background: #fafcfd; position: relative; }
+.network-box.tall { height: 520px; }
+
+/* ── Analogy boxes ── */
+.analogy { background: linear-gradient(135deg, #f0fdf4, #ecfeff); border-left: 4px solid var(--green); padding: 20px 24px; border-radius: 0 12px 12px 0; margin: 24px 0; font-size: 15px; }
+.analogy strong { color: var(--green); }
+
+/* ── Interactive demo ── */
+.demo-controls { display: flex; gap: 12px; flex-wrap: wrap; margin: 16px 0; }
+.demo-btn { border: none; padding: 10px 20px; border-radius: 8px; font-size: 13px; font-weight: 600; cursor: pointer; transition: 0.2s; }
+.demo-btn.primary { background: var(--green); color: #fff; }
+.demo-btn.primary:hover { background: var(--green-d); transform: translateY(-1px); }
+.demo-btn.secondary { background: #e5e7eb; color: var(--text); }
+.demo-btn.secondary:hover { background: #d1d5db; }
+.demo-btn.active { box-shadow: 0 0 0 3px rgba(27,115,173,0.3); }
+
+/* ── Cost formula ── */
+.formula-box { background: #1a2332; color: #e2e8f0; padding: 24px 32px; border-radius: 12px; font-family: 'Courier New', monospace; font-size: 15px; margin: 20px 0; line-height: 2; }
+.formula-box .highlight { color: #6ee7b7; font-weight: 700; }
+.formula-box .penalty { color: #fca5a5; }
+.formula-box .reward { color: #93c5fd; }
+
+/* ── Step indicators ── */
+.steps-visual { display: flex; align-items: center; gap: 0; margin: 30px 0; flex-wrap: wrap; }
+.step-dot { width: 44px; height: 44px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-weight: 700; font-size: 14px; color: #fff; flex-shrink: 0; }
+.step-connector { height: 3px; width: 40px; background: #e5e7eb; flex-shrink: 0; }
+.step-connector.active { background: var(--green); }
+
+/* ── Legend ── */
+.legend { display: flex; flex-wrap: wrap; gap: 14px; margin: 16px 0; }
+.legend-item { display: flex; align-items: center; gap: 8px; font-size: 13px; color: var(--muted); }
+.legend-dot { width: 14px; height: 14px; border-radius: 4px; }
+
+/* ── Table ── */
+.styled-table { width: 100%; border-collapse: collapse; font-size: 13px; margin: 16px 0; }
+.styled-table th { text-align: left; padding: 12px 14px; font-weight: 600; color: var(--muted); font-size: 11px; text-transform: uppercase; letter-spacing: 0.5px; border-bottom: 2px solid #e5e7eb; background: #f9fafb; }
+.styled-table td { padding: 10px 14px; border-bottom: 1px solid #f3f4f6; }
+.styled-table tr:hover td { background: #f9fafb; }
+
+/* ── Animated reveal ── */
+.reveal { opacity: 0; transform: translateY(30px); transition: opacity 0.6s ease, transform 0.6s ease; }
+.reveal.visible { opacity: 1; transform: translateY(0); }
+
+/* ── Tooltip ── */
+.info-tip { display: inline-flex; align-items: center; justify-content: center; width: 18px; height: 18px; border-radius: 50%; background: #e5e7eb; color: var(--muted); font-size: 11px; font-weight: 700; cursor: help; margin-left: 4px; }
+
+/* ── Outcome card ── */
+.outcome-card { text-align: center; padding: 24px 20px; border-radius: 12px; border: 1px solid rgba(0,0,0,0.06); }
+.outcome-card .big-num { font-size: 42px; font-weight: 800; margin-bottom: 4px; }
+.outcome-card .label { font-size: 13px; color: var(--muted); font-weight: 500; }
+
+/* ── Flow animation ── */
+.flow-step { display: flex; align-items: center; gap: 16px; padding: 16px 20px; border-radius: 10px; margin: 8px 0; background: #f9fafb; border: 1px solid transparent; transition: 0.3s; cursor: pointer; }
+.flow-step:hover, .flow-step.active { border-color: var(--green); background: #f0fdf4; box-shadow: 0 2px 12px rgba(27,115,173,0.15); }
+.flow-step .num { width: 32px; height: 32px; border-radius: 50%; background: var(--green); color: #fff; display: flex; align-items: center; justify-content: center; font-weight: 700; font-size: 13px; flex-shrink: 0; }
+.flow-step .desc { font-size: 14px; }
+.flow-step .desc strong { display: block; margin-bottom: 2px; }
+
+/* ── Final CTA ── */
+.cta-section { background: linear-gradient(160deg, #0e4e78, #155f8f, #1b73ad); color: #fff; text-align: center; }
+.cta-section h2 { font-size: 36px; margin-bottom: 20px; }
+.cta-section p { font-size: 17px; opacity: 0.8; max-width: 600px; margin: 0 auto 30px; }
+.cta-btn { display: inline-block; background: #fff; color: var(--green); padding: 14px 36px; border-radius: 8px; font-weight: 700; text-decoration: none; font-size: 15px; transition: 0.2s; }
+.cta-btn:hover { transform: translateY(-2px); box-shadow: 0 6px 24px rgba(0,0,0,0.2); }
+</style>
+</head>
+<body>
+
+<div class="progress-bar" id="progressBar"></div>
+
+<nav id="mainNav">
+  <a href="#hero">Home</a>
+  <a href="#what-is-graph">Graphs</a>
+  <a href="#our-data">Our Data</a>
+  <a href="#weights">Weights</a>
+  <a href="#solver">Solver</a>
+  <a href="#results">Results</a>
+</nav>
+
+<!-- ═══════════════════════════════════════════════════════════════
+     HERO
+     ═══════════════════════════════════════════════════════════════ -->
+<section class="hero" id="hero">
+  <div class="ms-logo">
+    <img src="../images/logo_black.png" alt="Ibi logo">
+  </div>
+  <h1>Smarter Scheduling with<br><span>Graph-Based Optimisation</span></h1>
+  <p>How we use network science to automatically build the best possible staff schedule - minimising cost while respecting everyone's availability and skills.</p>
+  <div style="display:flex;gap:16px;margin-bottom:60px">
+    <a href="#what-is-graph" class="cta-btn" style="background:#000;color:#fff">See How It Works</a>
+  </div>
+  <div class="scroll-hint">↓ Scroll to explore</div>
+</section>
+
+<!-- ═══════════════════════════════════════════════════════════════
+     SECTION 1: WHAT IS A GRAPH?
+     ═══════════════════════════════════════════════════════════════ -->
+<section id="what-is-graph">
+  <div class="section-inner">
+    <div class="section-header reveal">
+      <div class="step-badge">CONCEPT</div>
+      <h2>What is a Graph?</h2>
+      <p>Not a bar chart or pie chart - a <strong>network</strong> of connected things.</p>
+    </div>
+
+    <div class="grid-2 reveal">
+      <div>
+        <div class="analogy">
+          <strong>Think of it like a map:</strong> Cities are <em>nodes</em> (dots), and the roads between them are <em>edges</em> (lines). A graph simply shows <strong>what connects to what</strong>.
+        </div>
+        <p style="margin:20px 0;font-size:15px">In our world, the "cities" are <strong>people, days, jobs, and shifts</strong>. The "roads" represent relationships like <em>"Alice is available on Monday"</em> or <em>"Bob is qualified for Bakery"</em>.</p>
+        <p style="font-size:15px">This simple structure lets a computer understand the <strong>rules</strong> of scheduling and find the best solution automatically.</p>
+        
+        <div style="margin-top:24px">
+          <h4 style="margin-bottom:12px;font-size:14px;color:var(--muted)">Key Terms</h4>
+          <table class="styled-table">
+            <tr><td><strong>Node</strong> (dot)</td><td>A thing - a person, a day, a shift</td></tr>
+            <tr><td><strong>Edge</strong> (line)</td><td>A connection - "is available", "is qualified"</td></tr>
+            <tr><td><strong>Graph</strong></td><td>The whole picture of nodes + edges together</td></tr>
+          </table>
+        </div>
+      </div>
+      <div>
+        <div class="demo-controls">
+          <button class="demo-btn primary" onclick="showSimpleGraph()">Simple Example</button>
+          <button class="demo-btn secondary" onclick="showSocialGraph()">Social Network</button>
+        </div>
+        <div id="simpleGraphContainer" class="network-box"></div>
+        <div class="legend" id="simpleGraphLegend">
+          <div class="legend-item"><div class="legend-dot" style="background:var(--green)"></div>People</div>
+          <div class="legend-item"><div class="legend-dot" style="background:var(--navy)"></div>Places/Things</div>
+          <div class="legend-item"><div class="legend-dot" style="background:#999;border-radius:0;height:3px;width:20px"></div>Connections</div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ═══════════════════════════════════════════════════════════════
+     SECTION 2: OUR DATA AS A GRAPH
+     ═══════════════════════════════════════════════════════════════ -->
+<section id="our-data">
+  <div class="section-inner">
+    <div class="section-header reveal">
+      <div class="step-badge">STEP 1</div>
+      <h2>Representing Our Scheduling Problem</h2>
+      <p>We turn synthetic workforce data into a graph the computer can reason about.</p>
+    </div>
+
+    <div class="reveal">
+      <div class="grid-3" style="margin-bottom:30px">
+        <div class="outcome-card card">
+          <div class="big-num" style="color:var(--green)">5</div>
+          <div class="label">Employees</div>
+        </div>
+        <div class="outcome-card card">
+          <div class="big-num" style="color:var(--navy)">18</div>
+          <div class="label">Shift Slots to Fill</div>
+        </div>
+        <div class="outcome-card card">
+          <div class="big-num" style="color:var(--orange)">3</div>
+          <div class="label">Days (Mon-Wed)</div>
+        </div>
+      </div>
+    </div>
+
+    <div class="grid-2 reveal">
+      <div>
+        <h3 style="margin-bottom:16px">Four Types of Nodes</h3>
+        <div class="flow-step" onmouseover="highlightNodeType('employee')" onmouseout="resetHighlight()">
+          <div class="num" style="background:var(--green)">E</div>
+          <div class="desc"><strong>Employees</strong>Alice, Bob, Carla, Dan, Eve - each with different pay rates and max hours</div>
+        </div>
+        <div class="flow-step" onmouseover="highlightNodeType('day')" onmouseout="resetHighlight()">
+          <div class="num" style="background:var(--orange)">D</div>
+          <div class="desc"><strong>Days</strong>Monday, Tuesday, Wednesday - the planning window</div>
+        </div>
+        <div class="flow-step" onmouseover="highlightNodeType('job')" onmouseout="resetHighlight()">
+          <div class="num" style="background:var(--burgundy)">J</div>
+          <div class="desc"><strong>Jobs (Departments)</strong>Tills and Bakery - each needs specific skills</div>
+        </div>
+        <div class="flow-step" onmouseover="highlightNodeType('slot')" onmouseout="resetHighlight()">
+          <div class="num" style="background:var(--navy)">S</div>
+          <div class="desc"><strong>Shift Slots</strong>18 slots (3 days × 3 time periods × 2 departments) that need filling</div>
+        </div>
+
+        <div class="analogy" style="margin-top:24px">
+          <strong>The edges tell us the rules:</strong> "Alice IS AVAILABLE on Monday", "Bob IS QUALIFIED FOR Bakery". Only valid connections exist - impossible assignments are never even considered.
+        </div>
+      </div>
+      <div>
+        <div class="demo-controls">
+          <button class="demo-btn primary" onclick="showSchemaGraph()">Schema View</button>
+          <button class="demo-btn secondary" onclick="showInstanceGraph()">Full Graph</button>
+        </div>
+        <div id="dataGraphContainer" class="network-box tall"></div>
+        <div class="legend">
+          <div class="legend-item"><div class="legend-dot" style="background:var(--green)"></div>Employee</div>
+          <div class="legend-item"><div class="legend-dot" style="background:var(--orange)"></div>Day</div>
+          <div class="legend-item"><div class="legend-dot" style="background:var(--burgundy)"></div>Job</div>
+          <div class="legend-item"><div class="legend-dot" style="background:var(--navy)"></div>Shift Slot</div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ═══════════════════════════════════════════════════════════════
+     SECTION 3: EDGE WEIGHTS
+     ═══════════════════════════════════════════════════════════════ -->
+<section id="weights">
+  <div class="section-inner">
+    <div class="section-header reveal">
+      <div class="step-badge">STEP 2</div>
+      <h2>Adding Weights - Teaching the Computer to Prefer</h2>
+      <p>Each connection gets a "cost" number that tells the solver how good or bad that assignment would be.</p>
+    </div>
+
+    <div class="grid-2 reveal">
+      <div>
+        <div class="analogy">
+          <strong>Like choosing a route on a sat-nav:</strong> Each road has a "travel time". The sat-nav picks the route with the lowest total time. Our solver does the same - it picks the schedule with the lowest total cost.
+        </div>
+
+        <h4 style="margin:24px 0 12px">What makes an assignment cheaper (preferred)?</h4>
+        <table class="styled-table">
+          <thead><tr><th>Factor</th><th>Effect</th><th>Why</th></tr></thead>
+          <tbody>
+            <tr><td style="color:var(--green);font-weight:600">Higher Skill</td><td>↓ Lower cost</td><td>Better-qualified people are rewarded</td></tr>
+            <tr><td style="color:var(--green);font-weight:600">Lower Hourly Rate</td><td>↓ Lower cost</td><td>Cheaper labour is preferred (same quality)</td></tr>
+            <tr><td style="color:var(--green);font-weight:600">Preferred Day</td><td>↓ Lower cost</td><td>Respects employee preferences where possible</td></tr>
+            <tr><td style="color:#dc2626;font-weight:600">Understaffing</td><td>↑↑↑ Huge cost</td><td>Leaving a shift empty is always the worst option</td></tr>
+          </tbody>
+        </table>
+
+        <div class="formula-box" style="margin-top:24px">
+          <div style="font-size:12px;opacity:0.6;margin-bottom:8px">COST FORMULA</div>
+          <span class="highlight">cost</span> = <span class="penalty">hourly rate × 5 hours</span><br>
+          &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; <span class="reward">− skill bonus</span><br>
+          &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; <span class="reward">− preference bonus</span>
+          <div style="margin-top:12px;font-size:12px;opacity:0.7">Lower cost = the solver will prefer this assignment</div>
+        </div>
+      </div>
+      <div>
+        <h4 style="margin-bottom:12px">Interactive: See How Costs Compare</h4>
+        <div class="demo-controls">
+          <button class="demo-btn primary" onclick="showWeightedGraph()">Show Weighted Edges</button>
+          <button class="demo-btn secondary" onclick="showCostComparison()">Cost Comparison</button>
+        </div>
+        <div id="weightGraphContainer" class="network-box tall"></div>
+        <div id="weightInfo" style="margin-top:12px;font-size:13px;color:var(--muted);min-height:40px">
+          Click on an edge to see its cost breakdown
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ═══════════════════════════════════════════════════════════════
+     SECTION 4: THE SOLVER
+     ═══════════════════════════════════════════════════════════════ -->
+<section id="solver">
+  <div class="section-inner">
+    <div class="section-header reveal">
+      <div class="step-badge">STEP 3</div>
+      <h2>The Optimiser - Finding the Best Schedule</h2>
+      <p>A "minimum-cost flow" algorithm picks the combination of assignments with the lowest total cost.</p>
+    </div>
+
+    <div class="reveal">
+      <div class="analogy">
+        <strong>Like water flowing downhill:</strong> Imagine pouring water into the top of a pipe network. The water naturally finds the cheapest path through the pipes. Our solver does exactly this - it "flows" assignments through the cheapest connections to fill every shift slot.
+      </div>
+    </div>
+
+    <div class="grid-2 reveal" style="margin-top:30px">
+      <div>
+        <h4 style="margin-bottom:16px">How the Flow Network Works</h4>
+        <div class="flow-step">
+          <div class="num">1</div>
+          <div class="desc"><strong>Source (supply)</strong>Injects one unit of "flow" for each shift that needs filling (18 total)</div>
+        </div>
+        <div class="flow-step">
+          <div class="num">2</div>
+          <div class="desc"><strong>Employee nodes</strong>Flow is split - each person can only handle their max hours</div>
+        </div>
+        <div class="flow-step">
+          <div class="num">3</div>
+          <div class="desc"><strong>Employee-Day nodes</strong>Further splits enforce daily hour limits (e.g. max 10hrs/day)</div>
+        </div>
+        <div class="flow-step">
+          <div class="num">4</div>
+          <div class="desc"><strong>Shift Slots</strong>Each slot absorbs exactly 1 unit - it needs exactly one person</div>
+        </div>
+        <div class="flow-step">
+          <div class="num">5</div>
+          <div class="desc"><strong>Sink (demand)</strong>Collects all flow - confirms every shift is covered</div>
+        </div>
+
+        <div style="margin-top:20px;padding:16px;background:#fef2f2;border-radius:10px;border-left:3px solid #dc2626">
+          <strong style="color:#dc2626">Safety Net - The Phantom Node</strong>
+          <p style="font-size:13px;margin-top:6px">If no real employee can fill a slot, a "phantom" fills it at enormous cost. This flags genuine staffing gaps without crashing the system.</p>
+        </div>
+      </div>
+      <div>
+        <div style="display:flex;gap:20px;align-items:center;margin-bottom:12px;padding:12px 16px;background:#f9fafb;border-radius:10px;flex-wrap:wrap">
+          <div style="display:flex;align-items:center;gap:8px">
+            <label style="font-size:12px;font-weight:600">Employees:</label>
+            <input type="range" id="empSlider" min="2" max="10" value="5" style="width:100px;accent-color:var(--green)" oninput="document.getElementById('empSliderVal').textContent=this.value" onchange="rebuildFlowNetwork()">
+            <span id="empSliderVal" style="font-size:13px;font-weight:700;min-width:16px">5</span>
+          </div>
+          <div style="display:flex;align-items:center;gap:8px">
+            <label style="font-size:12px;font-weight:600">Days:</label>
+            <input type="range" id="daySlider" min="1" max="7" value="3" style="width:100px;accent-color:var(--navy)" oninput="document.getElementById('daySliderVal').textContent=this.value" onchange="rebuildFlowNetwork()">
+            <span id="daySliderVal" style="font-size:13px;font-weight:700;min-width:16px">3</span>
+          </div>
+          <div style="font-size:11px;color:var(--muted)">Slots: <strong id="slotCountLabel">18</strong></div>
+        </div>
+        <div class="demo-controls">
+          <button class="demo-btn primary" onclick="showFlowNetwork()">Full Network</button>
+          <button class="demo-btn secondary" onclick="showOptimalFlow()">Optimal Solution</button>
+        </div>
+        <div id="flowGraphContainer" class="network-box tall"></div>
+        <div class="legend">
+          <div class="legend-item"><div class="legend-dot" style="background:#2d2d2d"></div>Source/Sink</div>
+          <div class="legend-item"><div class="legend-dot" style="background:var(--green)"></div>Employee</div>
+          <div class="legend-item"><div class="legend-dot" style="background:var(--steel)"></div>Employee-Day</div>
+          <div class="legend-item"><div class="legend-dot" style="background:var(--navy)"></div>Shift Slot</div>
+          <div class="legend-item"><div class="legend-dot" style="background:var(--burgundy)"></div>Phantom</div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+
+<!-- ═══════════════════════════════════════════════════════════════
+     SECTION 5: RESULTS
+     ═══════════════════════════════════════════════════════════════ -->
+<section id="results">
+  <div class="section-inner">
+    <div class="section-header reveal">
+      <div class="step-badge">OUTCOME</div>
+      <h2>The Result - An Optimal Schedule</h2>
+      <p>Every assignment is explainable. We can trace exactly <em>why</em> each person was chosen.</p>
+    </div>
+
+    <div class="grid-3 reveal" style="margin-bottom:30px">
+      <div class="outcome-card card">
+        <div class="big-num" style="color:var(--green)">17/18</div>
+        <div class="label">Shifts Filled by Real Staff</div>
+      </div>
+      <div class="outcome-card card">
+        <div class="big-num" style="color:var(--navy)">£1,095</div>
+        <div class="label">Total Labour Cost</div>
+      </div>
+      <div class="outcome-card card">
+        <div class="big-num" style="color:var(--orange)">1</div>
+        <div class="label">Staffing Gap Identified</div>
+      </div>
+    </div>
+
+    <div class="grid-2 reveal">
+      <div class="card">
+        <h3 style="margin-bottom:16px">Weekly Schedule</h3>
+        <div id="scheduleDisplay"></div>
+      </div>
+      <div class="card">
+        <h3 style="margin-bottom:16px">Why Each Person Was Chosen</h3>
+        <div id="explainDisplay"></div>
+      </div>
+    </div>
+
+    <div class="reveal" style="margin-top:30px">
+      <div class="card" style="background:linear-gradient(135deg,#f0fdf4,#ecfeff)">
+        <h3 style="margin-bottom:16px">Key Benefits</h3>
+        <div class="grid-3">
+          <div style="text-align:center;padding:20px">
+            <div style="font-size:36px;margin-bottom:8px">⚡</div>
+            <strong>Instant Optimisation</strong>
+            <p style="font-size:13px;color:var(--muted);margin-top:6px">Solves in milliseconds, even for large stores. No manual trial-and-error.</p>
+          </div>
+          <div style="text-align:center;padding:20px">
+            <div style="font-size:36px;margin-bottom:8px">🔍</div>
+            <strong>Full Explainability</strong>
+            <p style="font-size:13px;color:var(--muted);margin-top:6px">Every decision has a traceable reason - no "black box" mystery.</p>
+          </div>
+          <div style="text-align:center;padding:20px">
+            <div style="font-size:36px;margin-bottom:8px">🛡️</div>
+            <strong>Constraint Respect</strong>
+            <p style="font-size:13px;color:var(--muted);margin-top:6px">Never violates working hour limits, availability, or qualification rules.</p>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ═══════════════════════════════════════════════════════════════
+     SECTION 6: SUMMARY / CTA
+     ═══════════════════════════════════════════════════════════════ -->
+<section class="cta-section" id="summary">
+  <div style="max-width:700px">
+    <div class="steps-visual" style="justify-content:center;margin-bottom:40px">
+      <div class="step-dot" style="background:var(--green)">1</div>
+      <div class="step-connector active"></div>
+      <div class="step-dot" style="background:var(--steel)">2</div>
+      <div class="step-connector active"></div>
+      <div class="step-dot" style="background:var(--navy)">3</div>
+      <div class="step-connector active"></div>
+      <div class="step-dot" style="background:var(--orange)">4</div>
+      <div class="step-connector active"></div>
+      <div class="step-dot" style="background:var(--gold)">5</div>
+    </div>
+    <h2>From Data → Graph → Weights → Solver → Schedule</h2>
+    <p>A robust, scalable, and transparent approach to workforce scheduling that reduces cost, respects constraints, and explains every decision.</p>
+    <a href="dashboard.html" class="cta-btn" style="margin-top:20px">Try the Interactive Dashboard →</a>
+  </div>
+</section>
+
+<!-- ═══════════════════════════════════════════════════════════════
+     SCRIPTS
+     ═══════════════════════════════════════════════════════════════ -->
+<script>
+/* ═══ COLOURS ═══ */
+const C = {green:'#429C76',burgundy:'#94385B',navy:'#304B84',steel:'#5790B1',orange:'#D17437',gold:'#E2A73F',grey:'#8E929F'};
+
+/* ═══ SCROLL PROGRESS & NAV ═══ */
+window.addEventListener('scroll', () => {
+  const scrollTop = document.documentElement.scrollTop;
+  const scrollHeight = document.documentElement.scrollHeight - window.innerHeight;
+  const progress = (scrollTop / scrollHeight) * 100;
+  document.getElementById('progressBar').style.width = progress + '%';
+
+  // Active nav link
+  const sections = document.querySelectorAll('section[id]');
+  sections.forEach(sec => {
+    const top = sec.offsetTop - 100;
+    const bottom = top + sec.offsetHeight;
+    const link = document.querySelector(`nav a[href="#${sec.id}"]`);
+    if (link) {
+      if (scrollTop >= top && scrollTop < bottom) link.classList.add('active');
+      else link.classList.remove('active');
+    }
+  });
+
+  // Reveal animations
+  document.querySelectorAll('.reveal').forEach(el => {
+    const rect = el.getBoundingClientRect();
+    if (rect.top < window.innerHeight - 80) el.classList.add('visible');
+  });
+});
+
+/* ═══ SECTION 1: SIMPLE GRAPH DEMOS ═══ */
+let simpleNet = null;
+
+function showSimpleGraph() {
+  const container = document.getElementById('simpleGraphContainer');
+  const nodes = new vis.DataSet([
+    {id: 1, label: 'Alice', color: {background: C.green, border: C.green}, font: {color: '#fff'}, shape: 'circle', size: 30},
+    {id: 2, label: 'Bob', color: {background: C.green, border: C.green}, font: {color: '#fff'}, shape: 'circle', size: 30},
+    {id: 3, label: 'Carla', color: {background: C.green, border: C.green}, font: {color: '#fff'}, shape: 'circle', size: 30},
+    {id: 4, label: 'Monday', color: {background: C.navy, border: C.navy}, font: {color: '#fff'}, shape: 'box', size: 25},
+    {id: 5, label: 'Tuesday', color: {background: C.navy, border: C.navy}, font: {color: '#fff'}, shape: 'box', size: 25},
+    {id: 6, label: 'Wednesday', color: {background: C.navy, border: C.navy}, font: {color: '#fff'}, shape: 'box', size: 25},
+  ]);
+  const edges = new vis.DataSet([
+    {from: 1, to: 4, label: 'available', font: {size: 10, color: C.grey}},
+    {from: 1, to: 5, label: 'available', font: {size: 10, color: C.grey}},
+    {from: 2, to: 4, label: 'available', font: {size: 10, color: C.grey}},
+    {from: 2, to: 6, label: 'available', font: {size: 10, color: C.grey}},
+    {from: 3, to: 5, label: 'available', font: {size: 10, color: C.grey}},
+    {from: 3, to: 6, label: 'available', font: {size: 10, color: C.grey}},
+  ]);
+  if (simpleNet) simpleNet.destroy();
+  simpleNet = new vis.Network(container, {nodes, edges}, {
+    physics: {barnesHut: {gravitationalConstant: -3000, springLength: 150}},
+    interaction: {hover: true, tooltipDelay: 100},
+    edges: {width: 2, color: {color: '#cbd5e1', hover: C.green}, smooth: {type: 'cubicBezier'}},
+    nodes: {borderWidth: 2, margin: 10}
+  });
+}
+
+function showSocialGraph() {
+  const container = document.getElementById('simpleGraphContainer');
+  const nodes = new vis.DataSet([
+    {id: 1, label: 'You', color: {background: C.green, border: C.green}, font: {color: '#fff'}, shape: 'circle', size: 35},
+    {id: 2, label: 'Friend A', color: {background: C.steel, border: C.steel}, font: {color: '#fff'}, shape: 'circle', size: 25},
+    {id: 3, label: 'Friend B', color: {background: C.steel, border: C.steel}, font: {color: '#fff'}, shape: 'circle', size: 25},
+    {id: 4, label: 'Friend C', color: {background: C.steel, border: C.steel}, font: {color: '#fff'}, shape: 'circle', size: 25},
+    {id: 5, label: 'Colleague', color: {background: C.orange, border: C.orange}, font: {color: '#fff'}, shape: 'circle', size: 22},
+    {id: 6, label: 'Manager', color: {background: C.burgundy, border: C.burgundy}, font: {color: '#fff'}, shape: 'circle', size: 22},
+  ]);
+  const edges = new vis.DataSet([
+    {from: 1, to: 2, label: 'knows', font: {size: 9}},
+    {from: 1, to: 3, label: 'knows', font: {size: 9}},
+    {from: 1, to: 5, label: 'works with', font: {size: 9}},
+    {from: 2, to: 3, label: 'knows', font: {size: 9}},
+    {from: 2, to: 4, label: 'knows', font: {size: 9}},
+    {from: 5, to: 6, label: 'reports to', font: {size: 9}},
+    {from: 1, to: 6, label: 'reports to', font: {size: 9}},
+  ]);
+  if (simpleNet) simpleNet.destroy();
+  simpleNet = new vis.Network(container, {nodes, edges}, {
+    physics: {barnesHut: {gravitationalConstant: -4000, springLength: 160}},
+    interaction: {hover: true},
+    edges: {width: 2, color: {color: '#cbd5e1', hover: C.green}, smooth: {type: 'cubicBezier'}},
+    nodes: {borderWidth: 2, margin: 10}
+  });
+}
+
+/* ═══ SECTION 2: DATA GRAPH DEMOS ═══ */
+let dataNet = null;
+
+function showSchemaGraph() {
+  const container = document.getElementById('dataGraphContainer');
+  const nodes = new vis.DataSet([
+    {id: 'emp', label: 'Employee\n(5 people)', x: -200, y: 0, fixed: true, color: {background: C.green, border: C.green}, font: {color: '#fff', size: 13, bold: true}, shape: 'circle', size: 50},
+    {id: 'day', label: 'Day\n(3 days)', x: 150, y: -150, fixed: true, color: {background: C.orange, border: C.orange}, font: {color: '#fff', size: 13, bold: true}, shape: 'circle', size: 40},
+    {id: 'job', label: 'Job\n(2 depts)', x: 150, y: 150, fixed: true, color: {background: C.burgundy, border: C.burgundy}, font: {color: '#fff', size: 13, bold: true}, shape: 'circle', size: 40},
+    {id: 'slot', label: 'Shift Slot\n(18 slots)', x: 350, y: 0, fixed: true, color: {background: C.navy, border: C.navy}, font: {color: '#fff', size: 13, bold: true}, shape: 'circle', size: 50},
+  ]);
+  const edges = new vis.DataSet([
+    {from: 'emp', to: 'day', label: 'AVAILABLE ON\n(13 edges)', font: {size: 11, color: C.green}, color: {color: C.green}, width: 3, arrows: 'to'},
+    {from: 'emp', to: 'job', label: 'QUALIFIED FOR\n(8 edges)', font: {size: 11, color: C.burgundy}, color: {color: C.burgundy}, width: 3, arrows: 'to'},
+    {from: 'slot', to: 'day', label: 'ON DAY', font: {size: 10, color: C.orange}, color: {color: C.orange, opacity: 0.5}, width: 2, arrows: 'to', dashes: true},
+    {from: 'slot', to: 'job', label: 'REQUIRES JOB', font: {size: 10, color: C.grey}, color: {color: C.grey, opacity: 0.5}, width: 2, arrows: 'to', dashes: true},
+    {from: 'emp', to: 'slot', label: 'CAN FILL\n(63 possible)', font: {size: 11, color: C.navy}, color: {color: C.navy}, width: 3, arrows: 'to', smooth: {type: 'curvedCW', roundness: 0.2}},
+  ]);
+  if (dataNet) dataNet.destroy();
+  dataNet = new vis.Network(container, {nodes, edges}, {
+    physics: false,
+    interaction: {hover: true, zoomView: true, dragView: true},
+    edges: {smooth: {type: 'cubicBezier'}},
+    nodes: {borderWidth: 3, margin: 12}
+  });
+}
+
+function showInstanceGraph() {
+  const container = document.getElementById('dataGraphContainer');
+  // Same layered layout as flow network but without SOURCE, SINK, PHANTOM
+  const nodes = new vis.DataSet([
+    // Employees - left column
+    {id:'E1',label:'Alice',x:150,y:70,fixed:true,color:{background:C.green},font:{color:'#fff',size:9},shape:'box',margin:5},
+    {id:'E2',label:'Bob',x:150,y:145,fixed:true,color:{background:C.green},font:{color:'#fff',size:9},shape:'box',margin:5},
+    {id:'E3',label:'Carla',x:150,y:220,fixed:true,color:{background:C.green},font:{color:'#fff',size:9},shape:'box',margin:5},
+    {id:'E4',label:'Dan',x:150,y:295,fixed:true,color:{background:C.green},font:{color:'#fff',size:9},shape:'box',margin:5},
+    {id:'E5',label:'Eve',x:150,y:370,fixed:true,color:{background:C.green},font:{color:'#fff',size:9},shape:'box',margin:5},
+    // Employee-Day sub-nodes - middle column
+    {id:'E1D1',label:'Ali Mon',x:300,y:30,fixed:true,color:{background:C.steel},font:{color:'#fff',size:8},shape:'box',margin:3},
+    {id:'E1D2',label:'Ali Tue',x:300,y:65,fixed:true,color:{background:C.steel},font:{color:'#fff',size:8},shape:'box',margin:3},
+    {id:'E1D3',label:'Ali Wed',x:300,y:100,fixed:true,color:{background:C.steel},font:{color:'#fff',size:8},shape:'box',margin:3},
+    {id:'E2D1',label:'Bob Mon',x:300,y:140,fixed:true,color:{background:C.steel},font:{color:'#fff',size:8},shape:'box',margin:3},
+    {id:'E2D3',label:'Bob Wed',x:300,y:175,fixed:true,color:{background:C.steel},font:{color:'#fff',size:8},shape:'box',margin:3},
+    {id:'E3D1',label:'Car Mon',x:300,y:210,fixed:true,color:{background:C.steel},font:{color:'#fff',size:8},shape:'box',margin:3},
+    {id:'E3D2',label:'Car Tue',x:300,y:245,fixed:true,color:{background:C.steel},font:{color:'#fff',size:8},shape:'box',margin:3},
+    {id:'E3D3',label:'Car Wed',x:300,y:280,fixed:true,color:{background:C.steel},font:{color:'#fff',size:8},shape:'box',margin:3},
+    {id:'E4D2',label:'Dan Tue',x:300,y:315,fixed:true,color:{background:C.steel},font:{color:'#fff',size:8},shape:'box',margin:3},
+    {id:'E4D3',label:'Dan Wed',x:300,y:350,fixed:true,color:{background:C.steel},font:{color:'#fff',size:8},shape:'box',margin:3},
+    {id:'E5D1',label:'Eve Mon',x:300,y:385,fixed:true,color:{background:C.steel},font:{color:'#fff',size:8},shape:'box',margin:3},
+    {id:'E5D2',label:'Eve Tue',x:300,y:420,fixed:true,color:{background:C.steel},font:{color:'#fff',size:8},shape:'box',margin:3},
+    {id:'E5D3',label:'Eve Wed',x:300,y:455,fixed:true,color:{background:C.steel},font:{color:'#fff',size:8},shape:'box',margin:3},
+    // Shift slots - right column
+    {id:'S1',label:'Mon AM T',x:460,y:30,fixed:true,color:{background:C.navy},font:{color:'#fff',size:7},shape:'box',margin:2},
+    {id:'S2',label:'Mon AM B',x:460,y:70,fixed:true,color:{background:C.navy},font:{color:'#fff',size:7},shape:'box',margin:2},
+    {id:'S3',label:'Mon PM T',x:460,y:110,fixed:true,color:{background:C.navy},font:{color:'#fff',size:7},shape:'box',margin:2},
+    {id:'S4',label:'Mon PM B',x:460,y:150,fixed:true,color:{background:C.navy},font:{color:'#fff',size:7},shape:'box',margin:2},
+    {id:'S5',label:'Mon Ev T',x:460,y:190,fixed:true,color:{background:C.navy},font:{color:'#fff',size:7},shape:'box',margin:2},
+    {id:'S6',label:'Mon Ev B',x:460,y:230,fixed:true,color:{background:C.navy},font:{color:'#fff',size:7},shape:'box',margin:2},
+    {id:'S7',label:'Tue AM T',x:460,y:270,fixed:true,color:{background:C.navy},font:{color:'#fff',size:7},shape:'box',margin:2},
+    {id:'S8',label:'Tue AM B',x:460,y:310,fixed:true,color:{background:C.navy},font:{color:'#fff',size:7},shape:'box',margin:2},
+    {id:'S9',label:'Tue PM T',x:460,y:350,fixed:true,color:{background:C.navy},font:{color:'#fff',size:7},shape:'box',margin:2},
+    {id:'S10',label:'Wed AM T',x:460,y:390,fixed:true,color:{background:C.navy},font:{color:'#fff',size:7},shape:'box',margin:2},
+  ]);
+  const edges = new vis.DataSet([
+    // Emp → EmpDay (availability)
+    {from:'E1',to:'E1D1',width:1.5,color:{color:C.steel,opacity:0.5},arrows:{to:{scaleFactor:0.3}}},
+    {from:'E1',to:'E1D2',width:1.5,color:{color:C.steel,opacity:0.5},arrows:{to:{scaleFactor:0.3}}},
+    {from:'E1',to:'E1D3',width:1.5,color:{color:C.steel,opacity:0.5},arrows:{to:{scaleFactor:0.3}}},
+    {from:'E2',to:'E2D1',width:1.5,color:{color:C.steel,opacity:0.5},arrows:{to:{scaleFactor:0.3}}},
+    {from:'E2',to:'E2D3',width:1.5,color:{color:C.steel,opacity:0.5},arrows:{to:{scaleFactor:0.3}}},
+    {from:'E3',to:'E3D1',width:1.5,color:{color:C.steel,opacity:0.5},arrows:{to:{scaleFactor:0.3}}},
+    {from:'E3',to:'E3D2',width:1.5,color:{color:C.steel,opacity:0.5},arrows:{to:{scaleFactor:0.3}}},
+    {from:'E3',to:'E3D3',width:1.5,color:{color:C.steel,opacity:0.5},arrows:{to:{scaleFactor:0.3}}},
+    {from:'E4',to:'E4D2',width:1.5,color:{color:C.steel,opacity:0.5},arrows:{to:{scaleFactor:0.3}}},
+    {from:'E4',to:'E4D3',width:1.5,color:{color:C.steel,opacity:0.5},arrows:{to:{scaleFactor:0.3}}},
+    {from:'E5',to:'E5D1',width:1.5,color:{color:C.steel,opacity:0.5},arrows:{to:{scaleFactor:0.3}}},
+    {from:'E5',to:'E5D2',width:1.5,color:{color:C.steel,opacity:0.5},arrows:{to:{scaleFactor:0.3}}},
+    {from:'E5',to:'E5D3',width:1.5,color:{color:C.steel,opacity:0.5},arrows:{to:{scaleFactor:0.3}}},
+    // EmpDay → Slots (candidate assignment edges)
+    {from:'E1D1',to:'S1',width:0.5,color:{color:C.navy,opacity:0.2},arrows:{to:{scaleFactor:0.2}}},
+    {from:'E1D1',to:'S2',width:0.5,color:{color:C.navy,opacity:0.2},arrows:{to:{scaleFactor:0.2}}},
+    {from:'E1D1',to:'S3',width:0.5,color:{color:C.navy,opacity:0.2},arrows:{to:{scaleFactor:0.2}}},
+    {from:'E1D1',to:'S4',width:0.5,color:{color:C.navy,opacity:0.2},arrows:{to:{scaleFactor:0.2}}},
+    {from:'E1D1',to:'S5',width:0.5,color:{color:C.navy,opacity:0.2},arrows:{to:{scaleFactor:0.2}}},
+    {from:'E1D2',to:'S7',width:0.5,color:{color:C.navy,opacity:0.2},arrows:{to:{scaleFactor:0.2}}},
+    {from:'E1D2',to:'S8',width:0.5,color:{color:C.navy,opacity:0.2},arrows:{to:{scaleFactor:0.2}}},
+    {from:'E1D3',to:'S10',width:0.5,color:{color:C.navy,opacity:0.2},arrows:{to:{scaleFactor:0.2}}},
+    {from:'E2D1',to:'S1',width:0.5,color:{color:C.navy,opacity:0.2},arrows:{to:{scaleFactor:0.2}}},
+    {from:'E2D1',to:'S2',width:0.5,color:{color:C.navy,opacity:0.2},arrows:{to:{scaleFactor:0.2}}},
+    {from:'E2D3',to:'S10',width:0.5,color:{color:C.navy,opacity:0.2},arrows:{to:{scaleFactor:0.2}}},
+    {from:'E3D1',to:'S1',width:0.5,color:{color:C.navy,opacity:0.2},arrows:{to:{scaleFactor:0.2}}},
+    {from:'E3D1',to:'S3',width:0.5,color:{color:C.navy,opacity:0.2},arrows:{to:{scaleFactor:0.2}}},
+    {from:'E3D2',to:'S7',width:0.5,color:{color:C.navy,opacity:0.2},arrows:{to:{scaleFactor:0.2}}},
+    {from:'E3D2',to:'S9',width:0.5,color:{color:C.navy,opacity:0.2},arrows:{to:{scaleFactor:0.2}}},
+    {from:'E3D3',to:'S10',width:0.5,color:{color:C.navy,opacity:0.2},arrows:{to:{scaleFactor:0.2}}},
+    {from:'E4D2',to:'S8',width:0.5,color:{color:C.navy,opacity:0.2},arrows:{to:{scaleFactor:0.2}}},
+    {from:'E4D3',to:'S10',width:0.5,color:{color:C.navy,opacity:0.2},arrows:{to:{scaleFactor:0.2}}},
+    {from:'E5D1',to:'S1',width:0.5,color:{color:C.navy,opacity:0.2},arrows:{to:{scaleFactor:0.2}}},
+    {from:'E5D1',to:'S3',width:0.5,color:{color:C.navy,opacity:0.2},arrows:{to:{scaleFactor:0.2}}},
+    {from:'E5D1',to:'S5',width:0.5,color:{color:C.navy,opacity:0.2},arrows:{to:{scaleFactor:0.2}}},
+    {from:'E5D2',to:'S7',width:0.5,color:{color:C.navy,opacity:0.2},arrows:{to:{scaleFactor:0.2}}},
+    {from:'E5D2',to:'S9',width:0.5,color:{color:C.navy,opacity:0.2},arrows:{to:{scaleFactor:0.2}}},
+    {from:'E5D3',to:'S10',width:0.5,color:{color:C.navy,opacity:0.2},arrows:{to:{scaleFactor:0.2}}},
+  ]);
+  if (dataNet) dataNet.destroy();
+  dataNet = new vis.Network(container, {nodes, edges}, {
+    physics: false,
+    interaction: {hover: true, tooltipDelay: 50, zoomView: true, dragView: true},
+    edges: {smooth: {type: 'continuous'}},
+    nodes: {borderWidth: 2}
+  });
+}
+
+function highlightNodeType(type) {
+  // Visual hover effect on flow-steps (handled by CSS)
+}
+function resetHighlight() {}
+
+/* ═══ SECTION 3: WEIGHTED GRAPH ═══ */
+let weightNet = null;
+
+function showWeightedGraph() {
+  const container = document.getElementById('weightGraphContainer');
+  // Show employees connected to shifts with cost labels
+  const nodes = new vis.DataSet([
+    {id: 'E1', label: 'Alice\n£15/hr', x: -200, y: -80, fixed: true, color: {background: C.green}, font: {color:'#fff',size:11}, shape:'circle', size: 28},
+    {id: 'E2', label: 'Bob\n£12.50/hr', x: -200, y: 0, fixed: true, color: {background: C.green}, font: {color:'#fff',size:11}, shape:'circle', size: 28},
+    {id: 'E3', label: 'Eve\n£12/hr', x: -200, y: 80, fixed: true, color: {background: C.green}, font: {color:'#fff',size:11}, shape:'circle', size: 28},
+    {id: 'S1', label: 'Mon Morning\nTills', x: 200, y: -80, fixed: true, color: {background: C.navy}, font: {color:'#fff',size:10}, shape:'box', size: 20},
+    {id: 'S2', label: 'Mon Morning\nBakery', x: 200, y: 80, fixed: true, color: {background: C.navy}, font: {color:'#fff',size:10}, shape:'box', size: 20},
+  ]);
+  const edges = new vis.DataSet([
+    {from:'E1',to:'S1',label:'Cost: 5,800',font:{size:11,color:'#333'},width:3,color:{color:C.green},arrows:'to',title:'£15 × 5hrs × 100 − (skill 3 × 500) − 200 pref = 5,800'},
+    {from:'E1',to:'S2',label:'Cost: 6,500',font:{size:11,color:'#333'},width:2,color:{color:C.green,opacity:0.6},arrows:'to',title:'£15 × 5hrs × 100 − (skill 2 × 500) − 200 pref = 6,500'},
+    {from:'E2',to:'S1',label:'Cost: 5,050',font:{size:11,color:'#333'},width:3,color:{color:C.steel},arrows:'to',title:'£12.50 × 5hrs × 100 − (skill 2 × 500) − 200 pref = 5,050'},
+    {from:'E2',to:'S2',label:'Cost: 4,550',font:{size:11,color:'#1d4ed8'},width:4,color:{color:'#1d4ed8'},arrows:'to',title:'£12.50 × 5hrs × 100 − (skill 3 × 500) − 200 pref = 4,550\n★ CHEAPEST for this slot!'},
+    {from:'E3',to:'S1',label:'Cost: 5,000',font:{size:11,color:'#1d4ed8'},width:4,color:{color:'#1d4ed8'},arrows:'to',title:'£12 × 5hrs × 100 − (skill 2 × 500) − 200 pref = 5,000\n★ CHEAPEST for this slot!'},
+  ]);
+  if (weightNet) weightNet.destroy();
+  weightNet = new vis.Network(container, {nodes, edges}, {
+    physics: false,
+    interaction: {hover: true, tooltipDelay: 50},
+    edges: {smooth: {type: 'cubicBezier', roundness: 0.15}},
+    nodes: {borderWidth: 2, margin: 10}
+  });
+  document.getElementById('weightInfo').innerHTML = '<strong>Hover over edges</strong> to see the cost breakdown. Blue = cheapest option for that slot.';
+}
+
+function showCostComparison() {
+  const container = document.getElementById('weightGraphContainer');
+  // Bar chart style comparison using vis
+  const nodes = new vis.DataSet([
+    {id: 'title', label: 'Cost Comparison\n(Lower = Better)', x: 0, y: -180, fixed: true, color: {background: '#f1f5f9', border: '#e2e8f0'}, font: {size: 14, bold: true}, shape: 'box', margin: 14},
+    // Real assignments
+    {id: 'a1', label: 'Eve → Mon Tills\nCost: 5,000', x: -150, y: -60, fixed: true, color: {background: C.green, border: C.green}, font: {color:'#fff',size:11}, shape: 'box', margin: 10, size: 20},
+    {id: 'a2', label: 'Bob → Mon Bakery\nCost: 4,550', x: 0, y: -60, fixed: true, color: {background: C.green, border: C.green}, font: {color:'#fff',size:11}, shape: 'box', margin: 10, size: 20},
+    {id: 'a3', label: 'Alice → Mon Tills\nCost: 5,800', x: 150, y: -60, fixed: true, color: {background: C.steel, border: C.steel}, font: {color:'#fff',size:11}, shape: 'box', margin: 10, size: 20},
+    // Phantom
+    {id: 'ph', label: 'PHANTOM\nCost: 99,999', x: 0, y: 100, fixed: true, color: {background: '#dc2626', border: '#991b1b'}, font: {color:'#fff',size:12,bold:true}, shape: 'box', margin: 14, size: 25},
+    {id: 'note', label: '~20× more expensive!\nAlways the last resort', x: 0, y: 170, fixed: true, color: {background: '#fef2f2', border: '#fca5a5'}, font: {size: 11, color: '#dc2626'}, shape: 'box', margin: 10},
+  ]);
+  const edges = new vis.DataSet([
+    {from: 'a1', to: 'ph', color: {color: '#fca5a5'}, width: 1, dashes: true, arrows: ''},
+    {from: 'a2', to: 'ph', color: {color: '#fca5a5'}, width: 1, dashes: true, arrows: ''},
+    {from: 'a3', to: 'ph', color: {color: '#fca5a5'}, width: 1, dashes: true, arrows: ''},
+  ]);
+  if (weightNet) weightNet.destroy();
+  weightNet = new vis.Network(container, {nodes, edges}, {
+    physics: false,
+    interaction: {hover: true},
+    edges: {smooth: false},
+    nodes: {borderWidth: 2}
+  });
+  document.getElementById('weightInfo').innerHTML = 'The <strong style="color:var(--green)">green boxes</strong> are real assignments the solver prefers. The <strong style="color:#dc2626">phantom</strong> represents an unfilled shift - always avoided.';
+}
+
+/* ═══ SECTION 4: FLOW NETWORK (dynamic solver) ═══ */
+let flowNet = null;
+
+const EMP_POOL = [
+  {id:'E1',name:'Alice',maxHrs:10,hourly:15},
+  {id:'E2',name:'Bob',maxHrs:6,hourly:12.5},
+  {id:'E3',name:'Carla',maxHrs:6,hourly:13},
+  {id:'E4',name:'Dan',maxHrs:10,hourly:14},
+  {id:'E5',name:'Eve',maxHrs:6,hourly:12},
+  {id:'E6',name:'Frank',maxHrs:8,hourly:13.5},
+  {id:'E7',name:'Grace',maxHrs:6,hourly:11.5},
+  {id:'E8',name:'Hasan',maxHrs:10,hourly:14.5},
+  {id:'E9',name:'Isla',maxHrs:6,hourly:12},
+  {id:'E10',name:'Jake',maxHrs:8,hourly:13}
+];
+const DAY_POOL = [
+  {id:'D1',name:'Monday'},{id:'D2',name:'Tuesday'},{id:'D3',name:'Wednesday'},
+  {id:'D4',name:'Thursday'},{id:'D5',name:'Friday'},{id:'D6',name:'Saturday'},{id:'D7',name:'Sunday'}
+];
+const EMP_COLORS = [C.green, C.burgundy, C.navy, C.steel, C.orange, C.gold, C.grey, '#6B8E6B', '#7B5EA7', '#C96B6B'];
+const SHIFT_DURATION = 5;
+const SHIFTS = [{label:'Morning',abbr:'AM'},{label:'Afternoon',abbr:'PM'},{label:'Evening',abbr:'Ev'}];
+const JOBS = [{id:'J1',name:'Tills',abbr:'T'},{id:'J2',name:'Bakery',abbr:'B'}];
+
+// Qualification pool (skills 0-3)
+const QUAL_POOL = [
+  {e:'E1',j:'J1',skill:3},{e:'E1',j:'J2',skill:2},
+  {e:'E2',j:'J1',skill:2},{e:'E2',j:'J2',skill:3},
+  {e:'E3',j:'J1',skill:2},{e:'E3',j:'J2',skill:1},
+  {e:'E4',j:'J1',skill:1},{e:'E4',j:'J2',skill:3},
+  {e:'E5',j:'J1',skill:2},{e:'E5',j:'J2',skill:0},
+  {e:'E6',j:'J1',skill:3},{e:'E6',j:'J2',skill:2},
+  {e:'E7',j:'J1',skill:2},{e:'E7',j:'J2',skill:1},
+  {e:'E8',j:'J1',skill:1},{e:'E8',j:'J2',skill:3},
+  {e:'E9',j:'J1',skill:2},{e:'E9',j:'J2',skill:2},
+  {e:'E10',j:'J1',skill:1},{e:'E10',j:'J2',skill:3}
+];
+
+// Seeded availability (deterministic)
+function getSeededAvailability(employees, days) {
+  const avail = [];
+  employees.forEach((emp, ei) => {
+    days.forEach((day, di) => {
+      // Deterministic pattern based on employee+day index
+      const hash = (ei * 7 + di * 3 + 1) % 5;
+      if (hash !== 0) avail.push({e: emp.id, d: day.id, p: hash < 3 ? 1 : 0});
+    });
+  });
+  return avail;
+}
+
+// MCF Solver
+class MCF {
+  constructor(n){this.n=n;this.adj=Array.from({length:n},()=>[]);this.edges=[]}
+  addEdge(u,v,cap,cost){
+    const i=this.edges.length;
+    this.edges.push({u,v,cap,cost,flow:0,rev:i+1});
+    this.adj[u].push(i);
+    this.edges.push({u:v,v:u,cap:0,cost:-cost,flow:0,rev:i});
+    this.adj[v].push(i+1);
+    return i;
+  }
+  solve(s,t,maxF){
+    let tFlow=0,tCost=0;
+    while(tFlow<maxF){
+      const dist=Array(this.n).fill(Infinity);
+      const inQ=Array(this.n).fill(false);
+      const prev=Array(this.n).fill(-1);
+      dist[s]=0;const q=[s];inQ[s]=true;
+      while(q.length){
+        const u=q.shift();inQ[u]=false;
+        for(const ei of this.adj[u]){
+          const e=this.edges[ei];
+          if(e.cap-e.flow>0&&dist[u]+e.cost<dist[e.v]){
+            dist[e.v]=dist[u]+e.cost;prev[e.v]=ei;
+            if(!inQ[e.v]){q.push(e.v);inQ[e.v]=true}
+          }
+        }
+      }
+      if(dist[t]===Infinity)break;
+      let bn=maxF-tFlow,v=t;
+      while(v!==s){const e=this.edges[prev[v]];bn=Math.min(bn,e.cap-e.flow);v=e.u}
+      v=t;
+      while(v!==s){const ei=prev[v];this.edges[ei].flow+=bn;this.edges[this.edges[ei].rev].flow-=bn;v=this.edges[ei].u}
+      tFlow+=bn;tCost+=bn*dist[t];
+    }
+    return{flow:tFlow,cost:tCost};
+  }
+}
+
+// Cached solver state
+let solverState = null;
+
+function runSolver() {
+  const empCount = +document.getElementById('empSlider').value;
+  const dayCount = +document.getElementById('daySlider').value;
+  const employees = EMP_POOL.slice(0, empCount);
+  const days = DAY_POOL.slice(0, dayCount);
+  const availability = getSeededAvailability(employees, days);
+  const qualifications = QUAL_POOL.filter(q => employees.some(e => e.id === q.e));
+
+  // Generate slots
+  const slots = [];
+  let sid = 0;
+  for (const d of days) for (const s of SHIFTS) for (const j of JOBS) {
+    sid++;
+    slots.push({id:'S'+sid, dayId:d.id, dayName:d.name, shift:s.label, shiftAbbr:s.abbr, jobId:j.id, jobName:j.name, jobAbbr:j.abbr});
+  }
+
+  // Compute canFill
+  const canFill = [];
+  for (const sl of slots) {
+    for (const emp of employees) {
+      const av = availability.find(a => a.e===emp.id && a.d===sl.dayId);
+      const qu = qualifications.find(q => q.e===emp.id && q.j===sl.jobId);
+      if (av && qu && qu.skill > 0) {
+        const base = Math.floor(emp.hourly * SHIFT_DURATION * 100);
+        const reward = qu.skill * 500;
+        const pref = av.p === 1 ? 200 : 0;
+        canFill.push({empId:emp.id, slotId:sl.id, dayId:sl.dayId, skill:qu.skill, edgeCost:base-reward-pref});
+      }
+    }
+  }
+
+  // Build MCF
+  const nmap = {}; let nid = 0;
+  const gid = name => { if(!(name in nmap)) nmap[name] = nid++; return nmap[name]; };
+  const SRC = gid('SOURCE'), SNK = gid('SINK');
+  employees.forEach(e => gid('EMP_'+e.id));
+  employees.forEach(e => days.forEach(d => {
+    if (availability.find(a => a.e===e.id && a.d===d.id)) gid('EMP_'+e.id+'_DAY_'+d.id);
+  }));
+  slots.forEach(s => gid('SLOT_'+s.id));
+  const PH = gid('PHANTOM');
+
+  const mcf = new MCF(nid);
+  const edgeMeta = [];
+
+  // SOURCE -> Employee
+  employees.forEach(emp => {
+    const cap = Math.floor(emp.maxHrs * days.length / SHIFT_DURATION);
+    const ei = mcf.addEdge(SRC, nmap['EMP_'+emp.id], cap, 0);
+    edgeMeta.push({idx:ei, type:'src_emp', from:'SOURCE', to:'EMP_'+emp.id, empId:emp.id, cap});
+  });
+  // Employee -> Employee-Day
+  employees.forEach(emp => {
+    days.forEach(day => {
+      const av = availability.find(a => a.e===emp.id && a.d===day.id);
+      if (av) {
+        const cap = Math.floor(emp.maxHrs / SHIFT_DURATION);
+        const ei = mcf.addEdge(nmap['EMP_'+emp.id], nmap['EMP_'+emp.id+'_DAY_'+day.id], cap, 0);
+        edgeMeta.push({idx:ei, type:'emp_day', from:'EMP_'+emp.id, to:'EMP_'+emp.id+'_DAY_'+day.id, empId:emp.id});
+      }
+    });
+  });
+  // Employee-Day -> Slot
+  canFill.forEach(cf => {
+    const sl = slots.find(s => s.id === cf.slotId);
+    const from = 'EMP_'+cf.empId+'_DAY_'+sl.dayId, to = 'SLOT_'+cf.slotId;
+    if (from in nmap && to in nmap) {
+      const ei = mcf.addEdge(nmap[from], nmap[to], 1, cf.edgeCost);
+      edgeMeta.push({idx:ei, type:'assign', from, to, empId:cf.empId, slotId:cf.slotId});
+    }
+  });
+  // SOURCE -> PHANTOM
+  mcf.addEdge(SRC, PH, slots.length, 0);
+  edgeMeta.push({idx:edgeMeta.length, type:'src_ph', from:'SOURCE', to:'PHANTOM'});
+  // PHANTOM -> Slots
+  slots.forEach(sl => {
+    const ei = mcf.addEdge(PH, nmap['SLOT_'+sl.id], 1, 99999);
+    edgeMeta.push({idx:ei, type:'phantom', from:'PHANTOM', to:'SLOT_'+sl.id, slotId:sl.id});
+  });
+  // Slots -> SINK
+  slots.forEach(sl => {
+    const ei = mcf.addEdge(nmap['SLOT_'+sl.id], SNK, 1, 0);
+    edgeMeta.push({idx:ei, type:'slot_sink', from:'SLOT_'+sl.id, to:'SINK'});
+  });
+
+  const res = mcf.solve(SRC, SNK, slots.length);
+
+  // Extract active edges
+  const activeEdges = new Set();
+  const assignments = [];
+  const phantoms = [];
+  for (const em of edgeMeta) {
+    const e = mcf.edges[em.idx];
+    if (e && e.flow > 0) {
+      activeEdges.add(em.idx);
+      if (em.type === 'assign') assignments.push(em);
+      if (em.type === 'phantom') phantoms.push(em);
+    }
+  }
+
+  // Count shifts per employee
+  const empShifts = {};
+  assignments.forEach(a => { empShifts[a.empId] = (empShifts[a.empId]||0) + 1; });
+
+  solverState = {employees, days, slots, availability, qualifications, canFill, edgeMeta, mcf, activeEdges, assignments, phantoms, empShifts, totalSlots: slots.length, res};
+  document.getElementById('slotCountLabel').textContent = slots.length;
+}
+
+function rebuildFlowNetwork() {
+  runSolver();
+  showFlowNetwork();
+}
+
+function showFlowNetwork() {
+  if (!solverState) runSolver();
+  const {employees, days, slots, availability, canFill, totalSlots} = solverState;
+  const container = document.getElementById('flowGraphContainer');
+
+  // Layout positions
+  const lx = {src:30, emp:150, empDay:300, slot:460, sink:600};
+  const nodes = [];
+  const edges = [];
+
+  // Calc vertical spacing
+  const empSpacing = Math.min(75, 440 / Math.max(employees.length, 1));
+  const empStart = 220 - (employees.length - 1) * empSpacing / 2;
+
+  // Collect emp-day nodes
+  const empDayNodes = [];
+  employees.forEach(emp => {
+    days.forEach(day => {
+      if (availability.find(a => a.e===emp.id && a.d===day.id))
+        empDayNodes.push({empId:emp.id, dayId:day.id});
+    });
+  });
+  const edSpacing = Math.min(35, 460 / Math.max(empDayNodes.length, 1));
+  const edStart = 220 - (empDayNodes.length - 1) * edSpacing / 2;
+  const slotSpacing = Math.min(35, 460 / Math.max(slots.length, 1));
+  const slotStart = 220 - (slots.length - 1) * slotSpacing / 2;
+
+  // SOURCE
+  nodes.push({id:'SRC',label:'SOURCE\n('+totalSlots+')',x:lx.src,y:220,fixed:true,color:{background:'#2d2d2d',border:'#2d2d2d',highlight:{background:'#2d2d2d',border:'#2d2d2d'},hover:{background:'#3d3d3d',border:'#3d3d3d'}},font:{color:'#fff',size:10},shape:'box',margin:8,chosen:false});
+  // SINK
+  nodes.push({id:'SNK',label:'SINK\n(-'+totalSlots+')',x:lx.sink,y:220,fixed:true,color:{background:'#2d2d2d',border:'#2d2d2d',highlight:{background:'#2d2d2d',border:'#2d2d2d'},hover:{background:'#3d3d3d',border:'#3d3d3d'}},font:{color:'#fff',size:10},shape:'box',margin:8,chosen:false});
+  // Employees
+  employees.forEach((emp, i) => {
+    const y = empStart + i * empSpacing;
+    nodes.push({id:'EMP_'+emp.id,label:emp.name,x:lx.emp,y,fixed:true,color:{background:C.green},font:{color:'#fff',size:9},shape:'box',margin:5});
+  });
+  // Employee-Day
+  empDayNodes.forEach((nd, i) => {
+    const y = edStart + i * edSpacing;
+    const dn = days.find(d=>d.id===nd.dayId).name.substring(0,3);
+    const en = employees.find(e=>e.id===nd.empId).name.substring(0,3);
+    nodes.push({id:'EMP_'+nd.empId+'_DAY_'+nd.dayId,label:en+' '+dn,x:lx.empDay,y,fixed:true,color:{background:C.steel},font:{color:'#fff',size:8},shape:'box',margin:3});
+  });
+  // Slots
+  slots.forEach((sl, i) => {
+    const y = slotStart + i * slotSpacing;
+    nodes.push({id:'SLOT_'+sl.id,label:sl.dayName.substring(0,3)+' '+sl.shiftAbbr+' '+sl.jobAbbr,x:lx.slot,y,fixed:true,color:{background:C.navy},font:{color:'#fff',size:7},shape:'box',margin:2});
+  });
+  // PHANTOM
+  const lowestY = Math.max(...nodes.map(n=>n.y)) + 60;
+  nodes.push({id:'PHANTOM',label:'PHANTOM',x:lx.empDay,y:lowestY,fixed:true,color:{background:C.burgundy},font:{color:'#fff',size:9},shape:'diamond',size:18});
+
+  // Edges: SRC → Emp
+  employees.forEach(emp => {
+    edges.push({from:'SRC',to:'EMP_'+emp.id,width:2,color:{color:'#888',opacity:0.6},arrows:{to:{scaleFactor:0.4}}});
+  });
+  // Emp → EmpDay
+  empDayNodes.forEach(nd => {
+    edges.push({from:'EMP_'+nd.empId,to:'EMP_'+nd.empId+'_DAY_'+nd.dayId,width:1.5,color:{color:C.steel,opacity:0.5},arrows:{to:{scaleFactor:0.3}}});
+  });
+  // EmpDay → Slot
+  canFill.forEach(cf => {
+    const sl = slots.find(s=>s.id===cf.slotId);
+    const from = 'EMP_'+cf.empId+'_DAY_'+sl.dayId;
+    const to = 'SLOT_'+cf.slotId;
+    edges.push({from,to,width:0.5,color:{color:C.navy,opacity:0.2},arrows:{to:{scaleFactor:0.2}}});
+  });
+  // Slot → SINK
+  slots.forEach(sl => {
+    edges.push({from:'SLOT_'+sl.id,to:'SNK',width:0.8,color:{color:'#888',opacity:0.2},arrows:{to:{scaleFactor:0.2}}});
+  });
+  // SRC → PHANTOM
+  edges.push({from:'SRC',to:'PHANTOM',width:1.5,color:{color:C.burgundy,opacity:0.3},dashes:[6,4],arrows:{to:{scaleFactor:0.3}}});
+  // PHANTOM → Slots
+  slots.forEach(sl => {
+    edges.push({from:'PHANTOM',to:'SLOT_'+sl.id,width:0.5,color:{color:C.burgundy,opacity:0.15},dashes:[4,3],arrows:{to:{scaleFactor:0.2}}});
+  });
+
+  if (flowNet) flowNet.destroy();
+  flowNet = new vis.Network(container, {nodes: new vis.DataSet(nodes), edges: new vis.DataSet(edges)}, {
+    physics: false,
+    interaction: {hover: true, zoomView: true, dragView: true, selectConnectedEdges: false},
+    edges: {smooth: {type: 'continuous'}},
+    nodes: {borderWidth: 2, chosen: false}
+  });
+}
+
+function showOptimalFlow() {
+  if (!solverState) runSolver();
+  const {employees, days, slots, availability, activeEdges, assignments, phantoms, empShifts, edgeMeta, mcf, canFill, totalSlots} = solverState;
+  const container = document.getElementById('flowGraphContainer');
+
+  // Layout (same as full network)
+  const lx = {src:30, emp:150, empDay:300, slot:460, sink:600};
+  const nodes = [];
+  const edges = [];
+
+  const empSpacing = Math.min(75, 440 / Math.max(employees.length, 1));
+  const empStart = 220 - (employees.length - 1) * empSpacing / 2;
+
+  const empDayNodes = [];
+  employees.forEach(emp => {
+    days.forEach(day => {
+      if (availability.find(a => a.e===emp.id && a.d===day.id))
+        empDayNodes.push({empId:emp.id, dayId:day.id});
+    });
+  });
+  const edSpacing = Math.min(35, 460 / Math.max(empDayNodes.length, 1));
+  const edStart = 220 - (empDayNodes.length - 1) * edSpacing / 2;
+  const slotSpacing = Math.min(35, 460 / Math.max(slots.length, 1));
+  const slotStart = 220 - (slots.length - 1) * slotSpacing / 2;
+
+  // Phantom slots
+  const phantomSlotIds = new Set(phantoms.map(p => p.slotId));
+
+  // SOURCE
+  nodes.push({id:'SRC',label:'SOURCE\n('+totalSlots+')',x:lx.src,y:220,fixed:true,color:{background:'#2d2d2d',border:'#2d2d2d',highlight:{background:'#2d2d2d',border:'#2d2d2d'},hover:{background:'#3d3d3d',border:'#3d3d3d'}},font:{color:'#fff',size:10},shape:'box',margin:8,chosen:false});
+  // SINK
+  nodes.push({id:'SNK',label:'SINK',x:lx.sink,y:220,fixed:true,color:{background:'#2d2d2d',border:'#2d2d2d',highlight:{background:'#2d2d2d',border:'#2d2d2d'},hover:{background:'#3d3d3d',border:'#3d3d3d'}},font:{color:'#fff',size:10},shape:'box',margin:8,chosen:false});
+  // Employees
+  employees.forEach((emp, i) => {
+    const y = empStart + i * empSpacing;
+    const shifts = empShifts[emp.id] || 0;
+    nodes.push({id:'EMP_'+emp.id,label:emp.name+'\n('+shifts+' shifts)',x:lx.emp,y,fixed:true,color:{background:C.green},font:{color:'#fff',size:9},shape:'box',margin:5});
+  });
+  // Employee-Day
+  empDayNodes.forEach((nd, i) => {
+    const y = edStart + i * edSpacing;
+    const dn = days.find(d=>d.id===nd.dayId).name.substring(0,3);
+    const en = employees.find(e=>e.id===nd.empId).name.substring(0,3);
+    nodes.push({id:'EMP_'+nd.empId+'_DAY_'+nd.dayId,label:en+' '+dn,x:lx.empDay,y,fixed:true,color:{background:C.steel},font:{color:'#fff',size:8},shape:'box',margin:3});
+  });
+  // Slots
+  slots.forEach((sl, i) => {
+    const y = slotStart + i * slotSpacing;
+    const isPhantom = phantomSlotIds.has(sl.id);
+    nodes.push({id:'SLOT_'+sl.id,label:sl.dayName.substring(0,3)+' '+sl.shiftAbbr+' '+sl.jobAbbr,x:lx.slot,y,fixed:true,
+      color:{background: isPhantom ? '#dc2626' : C.navy},font:{color:'#fff',size:7},shape:'box',margin:2});
+  });
+  // PHANTOM
+  const lowestY = Math.max(...nodes.map(n=>n.y)) + 60;
+  nodes.push({id:'PHANTOM',label:'PHANTOM',x:lx.empDay,y:lowestY,fixed:true,color:{background:'#dc2626'},font:{color:'#fff',size:8},shape:'diamond',size:14});
+
+  // Build active assignment lookup: empId -> slotId
+  const activeAssignSet = new Set(assignments.map(a => a.empId+'_'+a.slotId));
+  const empIdx = {};
+  employees.forEach((e,i) => empIdx[e.id] = i);
+
+  // Edges: SRC → Emp (colored by employee)
+  employees.forEach((emp, i) => {
+    const shifts = empShifts[emp.id] || 0;
+    edges.push({from:'SRC',to:'EMP_'+emp.id,width:Math.max(1.5, shifts),color:{color:EMP_COLORS[i%EMP_COLORS.length]},arrows:{to:{scaleFactor:0.4}}});
+  });
+  // Emp → EmpDay (colored by employee)
+  empDayNodes.forEach(nd => {
+    const i = empIdx[nd.empId];
+    edges.push({from:'EMP_'+nd.empId,to:'EMP_'+nd.empId+'_DAY_'+nd.dayId,width:2,color:{color:EMP_COLORS[i%EMP_COLORS.length],opacity:0.7},arrows:{to:{scaleFactor:0.3}}});
+  });
+  // EmpDay → Slot (only active assignments)
+  assignments.forEach(a => {
+    const sl = slots.find(s=>s.id===a.slotId);
+    const i = empIdx[a.empId];
+    edges.push({from:'EMP_'+a.empId+'_DAY_'+sl.dayId,to:'SLOT_'+a.slotId,width:3,color:{color:EMP_COLORS[i%EMP_COLORS.length]},arrows:{to:{scaleFactor:0.3}}});
+  });
+  // PHANTOM edges
+  if (phantoms.length > 0) {
+    edges.push({from:'SRC',to:'PHANTOM',width:2,color:{color:'#dc2626',opacity:0.5},dashes:[6,4],arrows:{to:{scaleFactor:0.3}}});
+    phantoms.forEach(p => {
+      edges.push({from:'PHANTOM',to:'SLOT_'+p.slotId,width:3,color:{color:'#dc2626'},dashes:[5,3],arrows:{to:{scaleFactor:0.3}}});
+    });
+  }
+  // Slots → SINK
+  slots.forEach(sl => {
+    const isPhantom = phantomSlotIds.has(sl.id);
+    edges.push({from:'SLOT_'+sl.id,to:'SNK',width:1,color:{color: isPhantom ? '#dc2626' : '#888', opacity:0.3},arrows:{to:{scaleFactor:0.2}}});
+  });
+
+  if (flowNet) flowNet.destroy();
+  flowNet = new vis.Network(container, {nodes: new vis.DataSet(nodes), edges: new vis.DataSet(edges)}, {
+    physics: false,
+    interaction: {hover: true, zoomView: true, dragView: true, selectConnectedEdges: false},
+    edges: {smooth: {type: 'continuous'}},
+    nodes: {borderWidth: 2, chosen: false}
+  });
+}
+
+/* ═══ SECTION 5: RESULTS ═══ */
+function renderSchedule() {
+  const schedule = [
+    // [Day, Shift, Tills, Bakery]
+    ['Monday', 'Morning', 'Alice', 'Bob'],
+    ['Monday', 'Afternoon', 'Alice', 'Carla'],
+    ['Monday', 'Evening', 'Eve', '⚠️ GAP'],
+    ['Tuesday', 'Morning', 'Alice', 'Dan'],
+    ['Tuesday', 'Afternoon', 'Alice', 'Dan'],
+    ['Tuesday', 'Evening', 'Eve', 'Dan'],
+    ['Wednesday', 'Morning', 'Eve', 'Bob'],
+    ['Wednesday', 'Afternoon', 'Carla', 'Dan'],
+    ['Wednesday', 'Evening', 'Carla', 'Dan'],
+  ];
+  const empColor = {'Alice': C.green, 'Bob': C.burgundy, 'Carla': C.navy, 'Dan': C.steel, 'Eve': C.orange};
+  
+  let html = '<table class="styled-table"><thead><tr><th>Day</th><th>Shift</th><th>Tills</th><th>Bakery</th></tr></thead><tbody>';
+  schedule.forEach(row => {
+    html += '<tr>';
+    html += `<td><strong>${row[0]}</strong></td>`;
+    html += `<td>${row[1]}</td>`;
+    // Tills
+    const tc = empColor[row[2]] || '#dc2626';
+    html += `<td><span style="color:${tc};font-weight:600">${row[2]}</span></td>`;
+    // Bakery
+    const bc = empColor[row[3]] || '#dc2626';
+    const isGap = row[3].includes('GAP');
+    html += `<td><span style="color:${bc};font-weight:600;${isGap?'background:#fef2f2;padding:2px 8px;border-radius:4px':''}">${row[3]}</span></td>`;
+    html += '</tr>';
+  });
+  html += '</tbody></table>';
+  document.getElementById('scheduleDisplay').innerHTML = html;
+}
+
+function renderExplainability() {
+  const explanations = [
+    {slot: 'Mon Morning Tills', person: 'Alice', color: C.green, reason: 'Highest Tills skill (3), preferred day bonus, available'},
+    {slot: 'Mon Morning Bakery', person: 'Bob', color: C.burgundy, reason: 'Highest Bakery skill (3), cheapest qualified option'},
+    {slot: 'Mon Evening Bakery', person: 'PHANTOM', color: '#dc2626', reason: 'No qualified employee available - genuine staffing gap identified'},
+    {slot: 'Tue Afternoon Bakery', person: 'Dan', color: C.steel, reason: 'Bakery skill 3, only available Tue/Wed, best fit for remaining slots'},
+    {slot: 'Wed Morning Tills', person: 'Eve', color: C.orange, reason: 'Cheapest employee (£12/hr), Tills qualified, preferred day'},
+  ];
+
+  let html = '';
+  explanations.forEach(e => {
+    const isPhantom = e.person === 'PHANTOM';
+    html += `<div style="padding:12px 16px;margin:8px 0;border-radius:8px;border-left:4px solid ${e.color};background:${isPhantom?'#fef2f2':'#f9fafb'}">
+      <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:4px">
+        <strong style="font-size:13px">${e.slot}</strong>
+        <span style="background:${e.color};color:#fff;padding:3px 10px;border-radius:10px;font-size:11px;font-weight:600">${e.person}</span>
+      </div>
+      <p style="font-size:12px;color:var(--muted);margin:0">${e.reason}</p>
+    </div>`;
+  });
+  html += '<p style="font-size:12px;color:var(--muted);margin-top:12px;font-style:italic">Showing 5 of 18 assignments. Full detail available in the dashboard.</p>';
+  document.getElementById('explainDisplay').innerHTML = html;
+}
+
+/* ═══ INIT ═══ */
+window.addEventListener('DOMContentLoaded', () => {
+  // Trigger reveal for elements in viewport
+  document.querySelectorAll('.reveal').forEach(el => {
+    const rect = el.getBoundingClientRect();
+    if (rect.top < window.innerHeight) el.classList.add('visible');
+  });
+  
+  // Initialize first graphs
+  showSimpleGraph();
+  showSchemaGraph();
+  showWeightedGraph();
+  showFlowNetwork();
+  renderSchedule();
+  renderExplainability();
+});
+</script>
+</body>
+</html>
