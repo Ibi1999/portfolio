@@ -1,3 +1,4 @@
+
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -908,6 +909,35 @@ body.dark::before {
   );
 }
 
+  /*
+   * Responsive tweaks for the game tab row.
+   *
+   * On very narrow viewports (like phones), the fixed number of game tabs can
+   * cause long labels such as "Speed Aim" or "Block Breaker" to overflow
+   * their containers. To accommodate this without allowing the overlay's
+   * height to change, switch the tab row to scroll horizontally and let
+   * each tab size itself based on its content. We also shrink the font
+   * slightly and reduce padding so the labels fit better. Scrollbars are
+   * hidden for a cleaner appearance on mobile.
+   */
+  @media (max-width: 600px) {
+    .ibi-tabs {
+      /* allow horizontal scrolling when there isn't enough width */
+      overflow-x: auto;
+      -ms-overflow-style: none; /* hide scrollbar in IE and Edge */
+      scrollbar-width: none; /* hide scrollbar in Firefox */
+    }
+    .ibi-tabs::-webkit-scrollbar {
+      display: none; /* hide scrollbar in WebKit browsers */
+    }
+    .ibi-tab {
+      flex: 0 0 auto; /* width based on content rather than equal distribution */
+      padding: 0.6rem 0.8rem;
+      font-size: 0.7rem;
+      margin-right: 0.25rem;
+    }
+  }
+
 
 /* Ensure your content still floats above it */
 .container,
@@ -1230,6 +1260,13 @@ body:not(.dark) .starfield {
     /* ---------- Logo scroll shrink ---------- */
     const siteLogo  = document.getElementById('siteLogo');
     const header    = document.querySelector('header');
+
+    siteLogo.style.cursor = 'pointer';
+    siteLogo.addEventListener('click', (e) => {
+      e.preventDefault();
+      e.stopPropagation();
+      openIbiOverlay();
+    });
 
     function enableDark(on){
       document.body.classList.toggle('dark', on);
@@ -1625,8 +1662,447 @@ document.addEventListener("DOMContentLoaded", () => {
     to { transform: rotate(360deg); }
   }
 
+  /* IBI secret mini-game */
+  #ibi-game-overlay {
+    position: fixed;
+    inset: 0;
+    background: rgba(8, 18, 31, 0.92);
+    display: none;
+    z-index: 10001;
+    align-items: center;
+    justify-content: center;
+    padding: 1.5rem;
+  }
+
+  #ibi-game-overlay.active {
+    display: flex;
+  }
+
+  #ibi-game {
+    position: relative;
+    width: min(760px, 100%);
+    max-height: 90vh;
+    min-height: 620px;
+    background: var(--card-bg);
+    border: 1px solid var(--border);
+    border-radius: 1.5rem;
+    padding: 1.5rem;
+    box-shadow: var(--shadow);
+    overflow: hidden;
+    display: flex;
+    flex-direction: column;
+    gap: 1rem;
+    color: var(--text);
+  }
+
+  #ibi-game h2 {
+    margin: 0 0 0.35rem;
+  }
+
+  #ibi-intro {
+    min-height: 60px;
+    margin: 0;
+  }
+
+  /*
+   * Ensure the game overlay maintains a consistent height when switching tabs.
+   * Tabs should stay on a single row and their text should never wrap to a second line.
+   * Use flex-grow to distribute space equally and prevent line breaks. If more tabs are
+   * added in the future, this configuration will accommodate them gracefully.
+   */
+  .ibi-tabs {
+    display: flex;
+    gap: 0.75rem;
+    /* keep all tabs on a single line to avoid causing the overlay height to fluctuate */
+    flex-wrap: nowrap;
+    margin-bottom: 0.75rem;
+  }
+
+  .ibi-tab {
+    /* allow tabs to grow and shrink equally within the row */
+    flex: 1 1 0;
+    min-width: 0;
+    padding: 0.85rem 1rem;
+    border-radius: 1rem;
+    border: 1px solid var(--border);
+    background: var(--card-bg);
+    color: var(--text);
+    font-weight: 600;
+    cursor: pointer;
+    text-align: center;
+    /* prevent the tab label from wrapping to a new line */
+    white-space: nowrap;
+    /* ensure long game names do not spill outside their buttons */
+    overflow: hidden;
+    text-overflow: ellipsis;
+    transition: background 0.25s, border-color 0.25s, color 0.25s;
+  }
+
+  .ibi-tab.active {
+    background: var(--primary);
+    border-color: var(--primary);
+    color: #fff;
+  }
+
+  /* Styles for the game selection dropdown. Replaces the original tab row.
+     The wrapper provides margin and the select uses similar styling to the
+     former buttons: rounded corners, border, and appropriate padding. */
+  .ibi-select-wrapper {
+    margin-bottom: 0.75rem;
+  }
+
+  /* Style for the dropdown label to improve readability */
+  #ibi-select-label {
+    display: block;
+    margin-bottom: 0.25rem;
+    font-weight: 600;
+    color: var(--text);
+  }
+
+  #ibi-game-select {
+    width: 100%;
+    padding: 0.85rem 1rem;
+    border-radius: 1rem;
+    border: 1px solid var(--border);
+    background: var(--card-bg);
+    color: var(--text);
+    font-weight: 600;
+    cursor: pointer;
+    /* Show default dropdown arrow to make it clear this is a select menu */
+    outline: none;
+  }
+
+  /* The default dropdown arrow is visible, no need to hide it */
+
+  #ibi-game-select option {
+    background: var(--card-bg);
+    color: var(--text);
+  }
+
+  #ibi-controls {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 1rem;
+  }
+
+  #ibi-start {
+    padding: 0.75rem 1.2rem;
+    border: none;
+    border-radius: 1rem;
+    background: var(--secondary);
+    color: #fff;
+    font-weight: 700;
+    cursor: pointer;
+    transition: transform 0.2s ease, background 0.2s ease;
+  }
+
+  #ibi-start:hover {
+    transform: translateY(-2px);
+    background: var(--primary);
+  }
+
+  #ibi-game .game-top {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    gap: 1rem;
+    flex-wrap: wrap;
+    padding-right: 4rem;
+  }
+
+  #ibi-game .game-board {
+    position: relative;
+    width: 100%;
+    min-height: 320px;
+    background: radial-gradient(circle at top, rgba(27,115,173,0.08), transparent 55%), var(--bg);
+    border-radius: 1.25rem;
+    overflow: hidden;
+  }
+
+  .ibi-star,
+  .ibi-ball {
+    position: absolute;
+    width: 64px;
+    height: 64px;
+    border-radius: 50%;
+    background: linear-gradient(135deg, var(--primary), var(--secondary));
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: #fff;
+    font-size: 1.3rem;
+    cursor: pointer;
+    user-select: none;
+    box-shadow: 0 10px 25px rgba(27,115,173,0.25);
+    transition: transform 0.2s ease;
+    border: 2px solid rgba(255,255,255,0.18);
+  }
+
+  .ibi-star:hover,
+  .ibi-ball:hover {
+    transform: scale(1.08);
+  }
+
+  .ibi-paddle {
+    position: absolute;
+    bottom: 16px;
+    left: 0;
+    width: 120px;
+    height: 18px;
+    background: var(--primary);
+    border-radius: 12px;
+    box-shadow: 0 8px 18px rgba(27,115,173,0.25);
+  }
+
+  /* Catch game paddle styling. It matches the visual style of the block breaker paddle but
+     is defined separately so it can be removed and reattached without interfering with
+     other games. */
+  .catch-paddle {
+    position: absolute;
+    bottom: 16px;
+    left: 0;
+    width: 120px;
+    height: 18px;
+    background: linear-gradient(135deg, var(--primary), var(--secondary));
+    border-radius: 10px;
+    box-shadow: 0 6px 14px rgba(27,115,173,0.3);
+  }
+  /* Catch game falling star styling. It uses a smaller size than the block breaker ball
+     and has no hover effect because the player cannot click it. */
+  .catch-star {
+    position: absolute;
+    width: 48px;
+    height: 48px;
+    border-radius: 50%;
+    background: linear-gradient(135deg, var(--primary), var(--secondary));
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: #fff;
+    font-size: 1.3rem;
+    pointer-events: none;
+    box-shadow: 0 10px 25px rgba(27,115,173,0.25);
+    border: 2px solid rgba(255,255,255,0.18);
+  }
+
+  /* Dodge game: player and obstacles */
+  .dodge-player {
+    position: absolute;
+    bottom: 16px;
+    left: 0;
+    width: 48px;
+    height: 48px;
+    border-radius: 50%;
+    background: linear-gradient(135deg, var(--primary), var(--secondary));
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: #fff;
+    font-size: 1.3rem;
+    pointer-events: none;
+    box-shadow: 0 10px 25px rgba(27,115,173,0.25);
+    border: 2px solid rgba(255,255,255,0.18);
+  }
+  .dodge-obstacle {
+    position: absolute;
+    width: 40px;
+    height: 40px;
+    border-radius: 50%;
+    background: linear-gradient(135deg, var(--secondary), var(--accent));
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: #fff;
+    font-size: 1.1rem;
+    pointer-events: none;
+    box-shadow: 0 8px 20px rgba(27,115,173,0.25);
+    border: 2px solid rgba(255,255,255,0.18);
+  }
+
+  /* Removed styles for the Runner game. */
+
+  /* Memory game board and buttons. The board is a 2x2 grid of coloured panels.
+     Each panel uses distinct gradients to signal different steps in the sequence.
+     When a panel is active, it is brightened slightly for feedback. */
+  .memory-board {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    grid-gap: 12px;
+    width: 200px;
+    height: 200px;
+    margin: 1rem auto;
+  }
+  .memory-btn {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: 12px;
+    color: #fff;
+    font-size: 2rem;
+    user-select: none;
+    cursor: pointer;
+  }
+  .memory-btn.red {
+    background: linear-gradient(135deg, #e74c3c, #c0392b);
+  }
+  .memory-btn.blue {
+    background: linear-gradient(135deg, #3498db, #2980b9);
+  }
+  .memory-btn.green {
+    background: linear-gradient(135deg, #27ae60, #1e8449);
+  }
+  .memory-btn.yellow {
+    background: linear-gradient(135deg, #f1c40f, #f39c12);
+  }
+  .memory-btn.active {
+    filter: brightness(1.4);
+  }
+
+  /* Styles for the removed Whack game have been omitted */
+
+  .ibi-block {
+    position: absolute;
+    width: calc((100% - 5 * 12px) / 6);
+    height: 20px;
+    border-radius: 8px;
+    background: linear-gradient(135deg, rgba(27,115,173,0.95), rgba(91,181,223,0.95));
+    box-shadow: 0 6px 14px rgba(27,115,173,0.2);
+  }
+
+  #ibi-status {
+    font-weight: 600;
+    /* Prevent the status label from wrapping when longer text like "Block Breaker" is used */
+    white-space: nowrap;
+  }
+
+  #ibi-lives {
+    font-weight: 600;
+    color: var(--secondary);
+    /* Reserve space so hiding the lives counter does not collapse the layout */
+    min-width: 100px;
+    /* Align numbers consistently */
+    text-align: right;
+  }
+
+  #ibi-game-message {
+    padding: 1rem;
+    border-radius: 1rem;
+    background: rgba(27,115,173,0.08);
+    color: var(--text);
+    min-height: 46px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    text-align: center;
+  }
+
+  /* Controls for the Snake game */
+  #snake-controls {
+    display: flex;
+    justify-content: center;
+    flex-wrap: wrap;
+    gap: 0.5rem;
+    margin-top: 0.5rem;
+  }
+  .snake-control-btn {
+    width: 48px;
+    height: 48px;
+    border: none;
+    border-radius: 0.5rem;
+    background: var(--primary);
+    color: var(--bg);
+    font-size: 1.5rem;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    transition: background 0.2s ease;
+  }
+  .snake-control-btn:hover {
+    background: var(--secondary);
+  }
+
+  #ibi-close,
+  #ibi-restart,
+  #ibi-start {
+    padding: 0.65rem 1rem;
+    border: none;
+    border-radius: 1rem;
+    background: var(--primary);
+    color: #fff;
+    cursor: pointer;
+    font-weight: 600;
+    transition: transform 0.2s ease;
+  }
+
+  #ibi-close {
+    position: absolute;
+    top: 1.25rem;
+    right: 1.25rem;
+    z-index: 2;
+  }
+
+  #ibi-close:hover,
+  #ibi-restart:hover,
+  #ibi-start:hover {
+    transform: translateY(-2px);
+  }
+
+  @media screen and (max-width: 768px) {
+    #ibi-game .game-board {
+      min-height: 240px;
+    }
+
+    .ibi-star {
+      width: 52px;
+      height: 52px;
+      font-size: 1rem;
+    }
+  }
 
 </style>
+
+<div id="ibi-game-overlay" aria-modal="true" role="dialog" aria-labelledby="ibi-game-title">
+  <div id="ibi-game">
+    <div class="game-top">
+      <div>
+        <h2 id="ibi-game-title">Secret IBI Games</h2>
+        <p id="ibi-intro">Choose game to play.</p>
+      </div>
+      <button id="ibi-close" type="button">Close</button>
+    </div>
+    <!-- Game selection dropdown to choose between the available mini-games -->
+    <div class="ibi-select-wrapper">
+      <!-- Visible label to clarify that this is a dropdown for selecting a game -->
+      <label for="ibi-game-select" id="ibi-select-label">Select a game</label>
+      <select id="ibi-game-select" aria-label="Choose game">
+        <option value="speed">Speed Aim</option>
+        <option value="breaker">Block Breaker</option>
+        <option value="snake">Snake</option>
+        <option value="catch">Catch</option>
+        <option value="dodge">Dodge</option>
+        <option value="memory">Memory</option>
+      </select>
+    </div>
+    <div id="ibi-controls">
+      <div id="ibi-status"><span id="ibi-status-text">Time:</span> <strong id="ibi-timer">15</strong><span id="ibi-status-suffix">s</span></div>
+      <span id="ibi-remaining" style="display:none">0</span>
+      <div id="ibi-lives">Lives: <strong id="ibi-lives-count">3</strong></div>
+      <button id="ibi-start" type="button">Start Game</button>
+    </div>
+    <div class="game-board" id="ibi-game-board"></div>
+    <!-- On‑screen controls for the Snake game. Hidden by default and shown only when playing Snake. -->
+    <div id="snake-controls" style="display: none;">
+      <button type="button" class="snake-control-btn" data-dir="up">↑</button>
+      <button type="button" class="snake-control-btn" data-dir="left">←</button>
+      <button type="button" class="snake-control-btn" data-dir="down">↓</button>
+      <button type="button" class="snake-control-btn" data-dir="right">→</button>
+    </div>
+    <div id="ibi-game-message">Choose game to play.</div>
+  </div>
+</div>
 
 <script>
   // === Configure your backend endpoints ===
@@ -1762,8 +2238,1256 @@ document.addEventListener("DOMContentLoaded", () => {
       sendChat();
     });
   });
-</script>
 
+  // Secret IBI mini-game trigger and logic
+  const ibiSequence = [];
+  const IBI_KEYS = ['i', 'b', 'i'];
+  const ibiOverlay = document.getElementById('ibi-game-overlay');
+  const ibiBoard = document.getElementById('ibi-game-board');
+  const ibiRemaining = document.getElementById('ibi-remaining');
+  const ibiStatusText = document.getElementById('ibi-status-text');
+  const ibiTimer = document.getElementById('ibi-timer');
+  const ibiStatusSuffix = document.getElementById('ibi-status-suffix');
+  const ibiMessage = document.getElementById('ibi-game-message');
+  const snakeControls = document.getElementById('snake-controls');
+
+  // Attach click handlers to on‑screen snake controls. When a button is pressed, update
+  // the snake's direction if it does not directly oppose the current one.
+  snakeControls.addEventListener('click', (e) => {
+    const btn = e.target.closest('.snake-control-btn');
+    if (!btn || !snakeState || !snakeState.running) return;
+    const dir = btn.dataset.dir;
+    let newDir = snakeState.direction;
+    if (dir === 'up' && snakeState.direction.y !== 1) {
+      newDir = { x: 0, y: -1 };
+    } else if (dir === 'down' && snakeState.direction.y !== -1) {
+      newDir = { x: 0, y: 1 };
+    } else if (dir === 'left' && snakeState.direction.x !== 1) {
+      newDir = { x: -1, y: 0 };
+    } else if (dir === 'right' && snakeState.direction.x !== -1) {
+      newDir = { x: 1, y: 0 };
+    }
+    snakeState.nextDirection = newDir;
+  });
+  const ibiClose = document.getElementById('ibi-close');
+  const ibiStart = document.getElementById('ibi-start');
+  const ibiLivesText = document.getElementById('ibi-lives-count');
+  // Reference to the select element used to choose the game. The tab
+  // buttons were removed in favour of this dropdown for better
+  // accessibility when many games are available.
+  const ibiSelect = document.getElementById('ibi-game-select');
+  const ibiIntro = document.getElementById('ibi-intro');
+  let ibiInterval = null;
+  let ibiTimeLeft = 15;
+  let ibiScore = 0;
+  let ibiStar = null;
+  let ibiMode = 'speed';
+  let ibiStarted = false;
+  let breakerState = null;
+  let snakeState = null;
+  let catchState = null;
+  let dodgeState = null;
+  // The Whack and Runner games have been removed, so their state objects are no longer defined.
+  // State object for the Memory game. Holds the sequence of colours, index,
+  // remaining lives, input status, running flag and any scheduled timeouts.
+  let memoryState = null;
+
+  function resetIbiOverlay() {
+    // reset the board and remove any paddle movement listener
+    ibiBoard.innerHTML = '';
+    ibiBoard.removeEventListener('mousemove', handlePaddleMove);
+    // remove touch handlers for paddle movement
+    ibiBoard.removeEventListener('touchstart', handlePaddleTouchMove);
+    ibiBoard.removeEventListener('touchmove', handlePaddleTouchMove);
+    // remove handlers for catch paddle movement
+    ibiBoard.removeEventListener('mousemove', handleCatchPaddleMove);
+    ibiBoard.removeEventListener('touchstart', handleCatchPaddleTouchMove);
+    ibiBoard.removeEventListener('touchmove', handleCatchPaddleTouchMove);
+    // remove handlers for dodge player movement
+    ibiBoard.removeEventListener('mousemove', handleDodgePlayerMove);
+    ibiBoard.removeEventListener('touchstart', handleDodgePlayerTouchMove);
+    ibiBoard.removeEventListener('touchmove', handleDodgePlayerTouchMove);
+    // stop any running snake loop and remove keyboard controls
+    if (snakeState && snakeState.interval) {
+      clearInterval(snakeState.interval);
+    }
+    document.removeEventListener('keydown', handleSnakeKey);
+    snakeState = null;
+    // stop any running catch loop
+    if (catchState && catchState.interval) {
+      clearInterval(catchState.interval);
+    }
+    catchState = null;
+    // stop any running dodge loops
+    if (dodgeState && dodgeState.interval) {
+      clearInterval(dodgeState.interval);
+    }
+    if (dodgeState && dodgeState.spawnTimeout) {
+      clearTimeout(dodgeState.spawnTimeout);
+    }
+    dodgeState = null;
+    // The Whack and Runner games have been removed, so no cleanup for them is necessary.
+    // Stop any running memory game. Clear scheduled timeouts, remove event listeners and remove the board.
+    if (memoryState) {
+      if (memoryState.flashTimeouts) {
+        memoryState.flashTimeouts.forEach((to) => clearTimeout(to));
+      }
+      if (memoryState.board) {
+        const buttons = memoryState.board.querySelectorAll('.memory-btn');
+        buttons.forEach((btn) => {
+          btn.removeEventListener('click', handleMemoryInput);
+          btn.removeEventListener('touchstart', handleMemoryInput);
+        });
+        memoryState.board.remove();
+      }
+      memoryState = null;
+    }
+    // reset timer and score for all game modes
+    ibiTimeLeft = 15;
+    ibiScore = 0;
+    ibiStar = null;
+    ibiStarted = false;
+    breakerState = null;
+    // Reset the score/timer display. Use 15 seconds for the speed game and 0 for score-based games.
+    ibiRemaining.textContent = 0;
+    if (ibiMode === 'speed') {
+      ibiTimer.textContent = 15;
+    } else {
+      ibiTimer.textContent = 0;
+    }
+    // Reset lives to 3; hidden for games that do not use lives
+    ibiLivesText.textContent = 3;
+    ibiIntro.textContent = 'Choose game to play.';
+    // Update default message to invite the user to choose any game. Do not list
+    // individual game names so the overlay remains accurate regardless of how many games exist.
+    ibiMessage.textContent = 'Choose game to play.';
+    ibiStart.textContent = 'Start Game';
+    // choose correct status label and show/hide controls while preserving layout height
+    const livesEl = document.getElementById('ibi-lives');
+    if (ibiMode === 'speed') {
+      // Speed Aim uses a countdown timer
+      ibiStatusUpdate('Time:', true);
+      // hide lives counter but keep its space
+      livesEl.style.visibility = 'hidden';
+    } else if (ibiMode === 'breaker') {
+      // Block Breaker uses a score counter instead of a title. Lives are visible.
+      ibiStatusUpdate('Score:', true);
+      ibiStatusSuffix.style.display = 'none';
+      livesEl.style.visibility = 'visible';
+      ibiLivesText.textContent = 3;
+    } else if (ibiMode === 'catch') {
+      // Catch game uses a score counter and lives are visible.
+      ibiStatusUpdate('Score:', true);
+      ibiStatusSuffix.style.display = 'none';
+      livesEl.style.visibility = 'visible';
+      ibiLivesText.textContent = 3;
+    } else {
+      // Snake displays the score in place of the timer
+      ibiStatusUpdate('Score:', true);
+      // hide lives counter but reserve space
+      livesEl.style.visibility = 'hidden';
+      ibiStatusSuffix.style.display = 'none';
+    }
+    // hide on‑screen snake controls when resetting
+    if (snakeControls) {
+      snakeControls.style.display = 'none';
+    }
+    clearIntervals();
+  }
+
+  function clearIntervals() {
+    if (ibiInterval) {
+      clearInterval(ibiInterval);
+      ibiInterval = null;
+    }
+    // stop any snake interval if it's running
+    if (snakeState && snakeState.interval) {
+      clearInterval(snakeState.interval);
+      snakeState.interval = null;
+    }
+    // stop any catch interval if it's running
+    if (catchState && catchState.interval) {
+      clearInterval(catchState.interval);
+      catchState.interval = null;
+    }
+    // stop any dodge intervals if they're running
+    if (dodgeState && dodgeState.interval) {
+      clearInterval(dodgeState.interval);
+      dodgeState.interval = null;
+    }
+    if (dodgeState && dodgeState.spawnTimeout) {
+      clearTimeout(dodgeState.spawnTimeout);
+      dodgeState.spawnTimeout = null;
+    }
+    // The Whack and Runner games have been removed, so no timers need to be cleared for them.
+    // Cancel any scheduled timeouts in the memory game
+    if (memoryState && memoryState.flashTimeouts) {
+      memoryState.flashTimeouts.forEach((to) => clearTimeout(to));
+      memoryState.flashTimeouts = [];
+    }
+  }
+
+  function openIbiOverlay() {
+    if (ibiOverlay.classList.contains('active')) return;
+    resetIbiOverlay();
+    ibiOverlay.classList.add('active');
+  }
+
+  function startSelectedGame() {
+    if (ibiStarted) return;
+    clearIntervals();
+    ibiStarted = true;
+    ibiStart.textContent = 'Game in progress...';
+    if (ibiMode === 'speed') {
+      startSpeedGame();
+      // countdown timer for speed game
+      ibiInterval = setInterval(() => {
+        ibiTimeLeft -= 1;
+        ibiTimer.textContent = ibiTimeLeft;
+        if (ibiTimeLeft <= 0) {
+          endCurrentGame();
+        }
+      }, 1000);
+    } else if (ibiMode === 'breaker') {
+      startBreakerGame();
+    } else if (ibiMode === 'snake') {
+      // snake game has its own loop and keyboard controls
+      startSnakeGame();
+    } else if (ibiMode === 'catch') {
+      // start the catch game
+      startCatchGame();
+    } else if (ibiMode === 'dodge') {
+      // start the dodge game
+      startDodgeGame();
+    // The whack and runner games have been removed. No action needed for these modes.
+    } else if (ibiMode === 'memory') {
+      // start the memory game
+      startMemoryGame();
+    }
+  }
+
+  function selectIbiMode(mode) {
+    ibiMode = mode;
+    // Update the current mode and ensure the select reflects the chosen game. We
+    // removed tab buttons in favour of a dropdown, so this simply sets the
+    // select's value and triggers a reset.
+    ibiSelect.value = mode;
+    resetIbiOverlay();
+    if (mode === 'speed') {
+      // Speed game uses a countdown timer and no lives
+      ibiStatusUpdate('Time:', true);
+      ibiIntro.textContent = 'Speed Aim: click the star and a new one appears. Score as many as you can in 15 seconds.';
+      // hide lives counter but reserve its space
+      document.getElementById('ibi-lives').style.visibility = 'hidden';
+      // hide on‑screen snake controls
+      snakeControls.style.display = 'none';
+    } else if (mode === 'breaker') {
+      // Block Breaker displays the score in place of a title
+      ibiStatusUpdate('Score:', true);
+      ibiStatusSuffix.style.display = 'none';
+      ibiIntro.textContent = 'Block Breaker: bounce the star ball into the blocks. You have 3 lives.';
+      document.getElementById('ibi-lives').style.visibility = 'visible';
+      ibiLivesText.textContent = 3;
+      // hide snake controls for this game
+      snakeControls.style.display = 'none';
+    } else if (mode === 'snake') {
+      // Snake uses score display and hides lives
+      ibiStatusUpdate('Score:', true);
+      ibiStatusSuffix.style.display = 'none';
+      ibiIntro.textContent = 'Snake: use the arrow keys to collect stars. Each star makes you grow longer. Don\'t hit yourself or the walls!';
+      // hide lives counter but reserve its space
+      document.getElementById('ibi-lives').style.visibility = 'hidden';
+      // show on‑screen snake controls
+      snakeControls.style.display = 'flex';
+    } else if (mode === 'catch') {
+      // Catch game also uses a score display and lives
+      ibiStatusUpdate('Score:', true);
+      ibiStatusSuffix.style.display = 'none';
+      ibiIntro.textContent = 'Catch: move the paddle to catch falling stars. Each catch increases your score. You have 3 lives.';
+      document.getElementById('ibi-lives').style.visibility = 'visible';
+      ibiLivesText.textContent = 3;
+      // hide snake controls for catch game
+      snakeControls.style.display = 'none';
+    } else if (mode === 'dodge') {
+      // Dodge game shows a score counter and uses lives
+      ibiStatusUpdate('Score:', true);
+      ibiStatusSuffix.style.display = 'none';
+      ibiIntro.textContent = 'Dodge: move to avoid falling obstacles. Each obstacle dodged increases your score. You have 3 lives.';
+      document.getElementById('ibi-lives').style.visibility = 'visible';
+      ibiLivesText.textContent = 3;
+      // hide snake controls for dodge game
+      snakeControls.style.display = 'none';
+    // Whack and Runner games have been removed, so no mode-specific configuration is needed here.
+    } else if (mode === 'memory') {
+      // Memory game uses a score counter and lives. Player must repeat a sequence of coloured panels.
+      ibiStatusUpdate('Score:', true);
+      ibiStatusSuffix.style.display = 'none';
+      ibiIntro.textContent = 'Memory: watch the sequence and repeat it. Each round adds a new panel. You have 3 lives.';
+      document.getElementById('ibi-lives').style.visibility = 'visible';
+      ibiLivesText.textContent = 3;
+      // hide snake controls for memory game
+      snakeControls.style.display = 'none';
+    }
+  }
+
+  function ibiStatusUpdate(text, showTimer = false) {
+    ibiStatusText.textContent = text;
+    ibiTimer.style.display = showTimer ? '' : 'none';
+    ibiStatusSuffix.style.display = showTimer ? '' : 'none';
+  }
+
+  function startSpeedGame() {
+    ibiScore = 0;
+    ibiTimeLeft = 15;
+    ibiRemaining.textContent = ibiScore;
+    ibiTimer.textContent = ibiTimeLeft;
+    ibiMessage.textContent = 'Hit the star to score. New star spawns after each click.';
+    createIbiStar();
+  }
+
+  function createIbiStar() {
+    if (ibiStar) ibiStar.remove();
+    const star = document.createElement('button');
+    star.type = 'button';
+    star.className = 'ibi-star';
+    star.textContent = '★';
+    star.addEventListener('click', () => {
+      if (!ibiOverlay.classList.contains('active') || !ibiStarted || ibiMode !== 'speed') return;
+      ibiScore += 1;
+      ibiRemaining.textContent = ibiScore;
+      ibiMessage.textContent = `Great shot! Score: ${ibiScore}`;
+      spawnSpeedStar();
+    });
+    // Support tap events on mobile devices by triggering the click handler
+    star.addEventListener('touchstart', (e) => {
+      e.preventDefault();
+      star.click();
+    }, { passive: false });
+    ibiBoard.appendChild(star);
+    ibiStar = star;
+    spawnSpeedStar();
+  }
+
+  function spawnSpeedStar() {
+    if (!ibiStar) return;
+    const boardRect = ibiBoard.getBoundingClientRect();
+    const size = ibiStar.offsetWidth || 64;
+    const maxX = Math.max(boardRect.width - size, 10);
+    const maxY = Math.max(boardRect.height - size, 10);
+    ibiStar.style.left = `${10 + Math.random() * maxX}px`;
+    ibiStar.style.top = `${10 + Math.random() * maxY}px`;
+  }
+
+  function startBreakerGame() {
+    ibiBoard.innerHTML = '';
+    ibiBoard.removeEventListener('mousemove', handlePaddleMove);
+    const lives = 3;
+    breakerState = {
+      lives,
+      blocks: [],
+      ball: null,
+      paddle: null,
+      velocity: { x: 3, y: -4 },
+      running: true,
+      score: 0,
+      countdownActive: true,
+    };
+    // Reset score and show it in the timer display for the Block Breaker game
+    ibiScore = 0;
+    ibiTimer.textContent = ibiScore;
+    // Lives counter is shown via ibiLivesText
+    ibiLivesText.textContent = lives;
+    ibiMessage.textContent = 'Use the paddle to keep the star ball in play. Clear all blocks to win.';
+    initBreakerBoard();
+    createBreakerPaddle();
+    createBreakerBall();
+    showBreakerCountdown();
+  }
+
+  function showBreakerCountdown() {
+    breakerState.countdownActive = true;
+    let count = 3;
+    const countdownDiv = document.createElement('div');
+    countdownDiv.id = 'breaker-countdown';
+    countdownDiv.style.cssText = `
+      position: absolute;
+      top: 50%;
+      left: 50%;
+      transform: translate(-50%, -50%);
+      font-size: 4rem;
+      font-weight: bold;
+      color: var(--primary);
+      z-index: 100;
+      pointer-events: none;
+      text-shadow: 0 0 20px rgba(27,115,173,0.5);
+    `;
+    ibiBoard.appendChild(countdownDiv);
+
+    const countdownInterval = setInterval(() => {
+      countdownDiv.textContent = count;
+      count -= 1;
+      if (count < 0) {
+        clearInterval(countdownInterval);
+        countdownDiv.remove();
+        breakerState.countdownActive = false;
+        requestAnimationFrame(updateBreaker);
+      }
+    }, 800);
+  }
+
+  function initBreakerBoard() {
+    const rows = 4;
+    const cols = 6;
+    const gap = 12;
+    const blockHeight = 20;
+    const boardWidth = ibiBoard.clientWidth;
+    const blockWidth = Math.floor((boardWidth - (cols + 1) * gap) / cols);
+    breakerState.blocks = [];
+    for (let row = 0; row < rows; row++) {
+      for (let col = 0; col < cols; col++) {
+        const block = document.createElement('div');
+        block.className = 'ibi-block';
+        const left = gap + col * (blockWidth + gap);
+        const top = gap + row * (blockHeight + gap);
+        block.style.left = `${left}px`;
+        block.style.top = `${top}px`;
+        block.style.width = `${blockWidth}px`;
+        block.style.height = `${blockHeight}px`;
+        ibiBoard.appendChild(block);
+        breakerState.blocks.push(block);
+      }
+    }
+  }
+
+  function createBreakerPaddle() {
+    const paddle = document.createElement('div');
+    paddle.className = 'ibi-paddle';
+    ibiBoard.appendChild(paddle);
+    breakerState.paddle = paddle;
+    movePaddleToCenter();
+    // Support both mouse and touch controls for the paddle
+    ibiBoard.addEventListener('mousemove', handlePaddleMove);
+    ibiBoard.addEventListener('touchstart', handlePaddleTouchMove, { passive: false });
+    ibiBoard.addEventListener('touchmove', handlePaddleTouchMove, { passive: false });
+  }
+
+  function movePaddleToCenter() {
+    if (!breakerState.paddle) return;
+    const boardRect = ibiBoard.getBoundingClientRect();
+    breakerState.paddle.style.left = `${boardRect.width / 2 - breakerState.paddle.offsetWidth / 2}px`;
+  }
+
+  function handlePaddleMove(event) {
+    if (!breakerState || !breakerState.paddle) return;
+    const boardRect = ibiBoard.getBoundingClientRect();
+    let x = event.clientX - boardRect.left - breakerState.paddle.offsetWidth / 2;
+    x = Math.max(0, Math.min(x, boardRect.width - breakerState.paddle.offsetWidth));
+    breakerState.paddle.style.left = `${x}px`;
+  }
+
+  // Handle paddle movement for touch input. Prevent default scrolling
+  function handlePaddleTouchMove(e) {
+    if (!breakerState || !breakerState.paddle) return;
+    const boardRect = ibiBoard.getBoundingClientRect();
+    const touch = e.touches[0];
+    let x = touch.clientX - boardRect.left - breakerState.paddle.offsetWidth / 2;
+    x = Math.max(0, Math.min(x, boardRect.width - breakerState.paddle.offsetWidth));
+    breakerState.paddle.style.left = `${x}px`;
+    e.preventDefault();
+  }
+
+  function createBreakerBall() {
+    const ball = document.createElement('button');
+    ball.type = 'button';
+    ball.className = 'ibi-ball';
+    ball.textContent = '★';
+    ibiBoard.appendChild(ball);
+    breakerState.ball = ball;
+    resetBreakerBall();
+  }
+
+  function resetBreakerBall() {
+    if (!breakerState || !breakerState.ball) return;
+    const boardRect = ibiBoard.getBoundingClientRect();
+    breakerState.ball.style.left = `${boardRect.width / 2 - 32}px`;
+    breakerState.ball.style.top = `${boardRect.height - 120}px`;
+    breakerState.velocity = { x: 3, y: -4 };
+  }
+
+  function updateBreaker() {
+    if (!ibiStarted || !breakerState || !breakerState.running || breakerState.countdownActive) return;
+    const ball = breakerState.ball;
+    const paddle = breakerState.paddle;
+    const boardRect = ibiBoard.getBoundingClientRect();
+    let x = parseFloat(ball.style.left);
+    let y = parseFloat(ball.style.top);
+    x += breakerState.velocity.x;
+    y += breakerState.velocity.y;
+    const size = ball.offsetWidth;
+
+    if (x <= 0 || x + size >= boardRect.width) {
+      breakerState.velocity.x *= -1;
+      x = Math.max(0, Math.min(x, boardRect.width - size));
+    }
+    if (y <= 0) {
+      breakerState.velocity.y *= -1;
+      y = 0;
+    }
+
+    const ballRect = {
+      left: boardRect.left + x,
+      top: boardRect.top + y,
+      right: boardRect.left + x + size,
+      bottom: boardRect.top + y + size
+    };
+    const paddleRect = paddle.getBoundingClientRect();
+    if (ballRect.bottom >= paddleRect.top && ballRect.top < paddleRect.bottom &&
+        ballRect.right >= paddleRect.left && ballRect.left <= paddleRect.right) {
+      breakerState.velocity.y = -Math.abs(breakerState.velocity.y);
+      const centerOffset = (ballRect.left + size / 2) - (paddleRect.left + paddleRect.width / 2);
+      breakerState.velocity.x = Math.max(-4, Math.min(4, centerOffset / 10));
+      y = paddleRect.top - boardRect.top - size - 1;
+    }
+
+    const hitBlock = breakerState.blocks.find(block => {
+      const blockRect = block.getBoundingClientRect();
+      return ballRect.right >= blockRect.left && ballRect.left <= blockRect.right &&
+             ballRect.bottom >= blockRect.top && ballRect.top <= blockRect.bottom;
+    });
+
+    if (hitBlock) {
+      hitBlock.remove();
+      breakerState.blocks = breakerState.blocks.filter(b => b !== hitBlock);
+      breakerState.velocity.y *= -1;
+      ibiScore += 1;
+      // Update the score display in the timer element for Block Breaker
+      ibiTimer.textContent = ibiScore;
+      if (breakerState.blocks.length === 0) {
+        ibiMessage.textContent = 'All blocks cleared! You win!';
+        endCurrentGame(true);
+        return;
+      }
+    }
+
+    if (y + size >= boardRect.height) {
+      breakerState.lives -= 1;
+      ibiLivesText.textContent = breakerState.lives;
+      if (breakerState.lives <= 0) {
+        // end the game when no lives remain. endCurrentGame will handle cleanup.
+        endCurrentGame(false);
+        // Override the endCurrentGame message to simply say Game over
+        ibiMessage.textContent = 'Game over';
+        return;
+      }
+      resetBreakerBall();
+      showBreakerCountdown();
+      return;
+    }
+
+    ball.style.left = `${x}px`;
+    ball.style.top = `${y}px`;
+    requestAnimationFrame(updateBreaker);
+  }
+
+  /* ------------------------------------------------------------------------
+   *                            Snake Game Logic
+   *
+   * The snake game uses a simple grid system based on the size of the
+   * game board. Each cell in the grid has a fixed pixel size (cellSize), and
+   * the snake moves one cell at a time. A star (food) is randomly spawned
+   * on an empty cell; when collected, the snake grows by one segment and the
+   * player's score increases. Hitting the wall or the snake's own body ends
+   * the game. Score is shown via the timer display. Controls are bound to
+   * the arrow keys.
+   */
+
+  function startSnakeGame() {
+    // Clear the board of any prior elements
+    ibiBoard.innerHTML = '';
+    // Initialise the snake state
+    snakeState = {
+      positions: [],
+      direction: { x: 1, y: 0 },
+      nextDirection: { x: 1, y: 0 },
+      food: null,
+      running: true,
+      interval: null,
+      cellSize: 20,
+      rows: 0,
+      cols: 0
+    };
+    ibiScore = 0;
+    ibiTimer.textContent = ibiScore;
+    ibiMessage.textContent = 'Use the arrow keys to move. Collect stars to grow and avoid hitting yourself or the walls.';
+    // Compute board dimensions and grid size
+    const boardRect = ibiBoard.getBoundingClientRect();
+    // Choose a reasonable cell size based on current board width. If the board is
+    // narrower than 400px, reduce cell size so the grid fits nicely.
+    const approxCell = boardRect.width / 20;
+    snakeState.cellSize = Math.max(12, Math.min(24, approxCell));
+    snakeState.cols = Math.floor(boardRect.width / snakeState.cellSize);
+    snakeState.rows = Math.floor(boardRect.height / snakeState.cellSize);
+    // Ensure we have at least a 10x10 grid
+    if (snakeState.cols < 10) snakeState.cols = 10;
+    if (snakeState.rows < 10) snakeState.rows = 10;
+    // Position the snake near the centre of the board
+    const startRow = Math.floor(snakeState.rows / 2);
+    const startCol = Math.floor(snakeState.cols / 2);
+    // Start with three segments moving to the right
+    snakeState.positions = [
+      { row: startRow, col: startCol - 1 },
+      { row: startRow, col: startCol - 2 },
+      { row: startRow, col: startCol - 3 }
+    ];
+    // Draw initial snake and food
+    renderSnake();
+    spawnSnakeFood();
+    // Register keyboard handler for arrow keys
+    document.addEventListener('keydown', handleSnakeKey);
+    // Start the game loop
+    snakeState.interval = setInterval(updateSnake, 150);
+  }
+
+  function renderSnake() {
+    if (!snakeState) return;
+    // Remove old segments
+    const oldSegs = ibiBoard.querySelectorAll('.snake-segment');
+    oldSegs.forEach(seg => seg.remove());
+    // Draw each segment; the head uses the primary colour, the body the secondary
+    snakeState.positions.forEach((pos, idx) => {
+      const seg = document.createElement('div');
+      seg.className = 'snake-segment';
+      seg.style.position = 'absolute';
+      seg.style.width = `${snakeState.cellSize}px`;
+      seg.style.height = `${snakeState.cellSize}px`;
+      seg.style.left = `${pos.col * snakeState.cellSize}px`;
+      seg.style.top = `${pos.row * snakeState.cellSize}px`;
+      seg.style.background = idx === 0 ? 'var(--primary)' : 'var(--secondary)';
+      seg.style.borderRadius = '4px';
+      ibiBoard.appendChild(seg);
+    });
+  }
+
+  function spawnSnakeFood() {
+    if (!snakeState) return;
+    // Remove existing food
+    const oldFood = ibiBoard.querySelector('.snake-food');
+    if (oldFood) oldFood.remove();
+    let row, col;
+    // Choose a random empty cell
+    do {
+      row = Math.floor(Math.random() * snakeState.rows);
+      col = Math.floor(Math.random() * snakeState.cols);
+    } while (snakeState.positions.some(p => p.row === row && p.col === col));
+    snakeState.food = { row, col };
+    const food = document.createElement('div');
+    food.className = 'snake-food';
+    food.style.position = 'absolute';
+    food.style.width = `${snakeState.cellSize}px`;
+    food.style.height = `${snakeState.cellSize}px`;
+    food.style.left = `${col * snakeState.cellSize}px`;
+    food.style.top = `${row * snakeState.cellSize}px`;
+    food.style.display = 'flex';
+    food.style.alignItems = 'center';
+    food.style.justifyContent = 'center';
+    food.style.fontSize = `${snakeState.cellSize * 0.7}px`;
+    food.style.color = 'var(--primary)';
+    food.textContent = '★';
+    ibiBoard.appendChild(food);
+  }
+
+  function handleSnakeKey(e) {
+    if (!snakeState || !snakeState.running) return;
+    // Only handle arrow keys
+    const key = e.key;
+    let newDir = snakeState.direction;
+    if (key === 'ArrowUp' && snakeState.direction.y !== 1) {
+      newDir = { x: 0, y: -1 };
+    } else if (key === 'ArrowDown' && snakeState.direction.y !== -1) {
+      newDir = { x: 0, y: 1 };
+    } else if (key === 'ArrowLeft' && snakeState.direction.x !== 1) {
+      newDir = { x: -1, y: 0 };
+    } else if (key === 'ArrowRight' && snakeState.direction.x !== -1) {
+      newDir = { x: 1, y: 0 };
+    } else {
+      return;
+    }
+    snakeState.nextDirection = newDir;
+  }
+
+  function updateSnake() {
+    if (!snakeState || !snakeState.running) return;
+    // Update direction based on the latest key press
+    snakeState.direction = snakeState.nextDirection;
+    // Current head position
+    const head = snakeState.positions[0];
+    const newRow = head.row + snakeState.direction.y;
+    const newCol = head.col + snakeState.direction.x;
+    // Collision with walls
+    if (newRow < 0 || newRow >= snakeState.rows || newCol < 0 || newCol >= snakeState.cols) {
+      endSnakeGame();
+      return;
+    }
+    // Collision with self
+    if (snakeState.positions.some(p => p.row === newRow && p.col === newCol)) {
+      endSnakeGame();
+      return;
+    }
+    // Add new head
+    snakeState.positions.unshift({ row: newRow, col: newCol });
+    // Check if food eaten
+    if (snakeState.food && snakeState.food.row === newRow && snakeState.food.col === newCol) {
+      ibiScore += 1;
+      ibiTimer.textContent = ibiScore;
+      spawnSnakeFood();
+    } else {
+      // Remove tail
+      snakeState.positions.pop();
+    }
+    renderSnake();
+  }
+
+  function endSnakeGame() {
+    if (!snakeState) return;
+    snakeState.running = false;
+    // Stop the loop
+    if (snakeState.interval) {
+      clearInterval(snakeState.interval);
+      snakeState.interval = null;
+    }
+    // Remove keyboard handler
+    document.removeEventListener('keydown', handleSnakeKey);
+    // Show game over message
+    ibiMessage.textContent = `Game over. Final score: ${ibiScore}. Press Start to play again.`;
+    ibiStart.textContent = 'Start Game';
+    ibiStarted = false;
+  }
+
+  /* ------------------------------------------------------------------------
+   *                            Catch Game Logic
+   *
+   * In the Catch game, the player controls a paddle at the bottom of the board
+   * and must catch falling stars. Each caught star increases the score by one.
+   * If a star reaches the bottom without being caught, the player loses a life.
+   * After three misses the game ends. The score is shown via the timer display
+   * and lives are updated in the lives counter.
+   */
+
+  function startCatchGame() {
+    // Clear the board and reset state
+    ibiBoard.innerHTML = '';
+    catchState = {
+      lives: 3,
+      paddle: null,
+      star: null,
+      speed: 3,
+      interval: null,
+      running: true
+    };
+    ibiScore = 0;
+    ibiTimer.textContent = ibiScore;
+    ibiLivesText.textContent = catchState.lives;
+    ibiMessage.textContent = 'Move the paddle to catch falling stars.';
+    // Create paddle and first star
+    createCatchPaddle();
+    spawnCatchStar();
+    // Begin the update loop
+    catchState.interval = setInterval(updateCatch, 20);
+  }
+
+  function createCatchPaddle() {
+    const paddle = document.createElement('div');
+    paddle.className = 'catch-paddle';
+    ibiBoard.appendChild(paddle);
+    catchState.paddle = paddle;
+    // Position paddle in centre initially
+    const boardRect = ibiBoard.getBoundingClientRect();
+    paddle.style.left = `${(boardRect.width - paddle.offsetWidth) / 2}px`;
+    // Attach mouse and touch handlers
+    ibiBoard.addEventListener('mousemove', handleCatchPaddleMove);
+    ibiBoard.addEventListener('touchstart', handleCatchPaddleTouchMove, { passive: false });
+    ibiBoard.addEventListener('touchmove', handleCatchPaddleTouchMove, { passive: false });
+  }
+
+  function handleCatchPaddleMove(event) {
+    if (!catchState || !catchState.paddle) return;
+    const boardRect = ibiBoard.getBoundingClientRect();
+    let x = event.clientX - boardRect.left - catchState.paddle.offsetWidth / 2;
+    // Clamp within bounds
+    x = Math.max(0, Math.min(x, boardRect.width - catchState.paddle.offsetWidth));
+    catchState.paddle.style.left = `${x}px`;
+  }
+
+  function handleCatchPaddleTouchMove(e) {
+    if (!catchState || !catchState.paddle) return;
+    const boardRect = ibiBoard.getBoundingClientRect();
+    const touch = e.touches[0];
+    let x = touch.clientX - boardRect.left - catchState.paddle.offsetWidth / 2;
+    x = Math.max(0, Math.min(x, boardRect.width - catchState.paddle.offsetWidth));
+    catchState.paddle.style.left = `${x}px`;
+    e.preventDefault();
+  }
+
+  function spawnCatchStar() {
+    // Remove any existing star
+    if (catchState.star) {
+      catchState.star.remove();
+    }
+    const star = document.createElement('div');
+    star.className = 'catch-star';
+    star.textContent = '★';
+    // Random horizontal start position
+    const boardRect = ibiBoard.getBoundingClientRect();
+    const starSize = 48;
+    const maxX = Math.max(0, boardRect.width - starSize);
+    const startX = Math.random() * maxX;
+    star.style.left = `${startX}px`;
+    star.style.top = `0px`;
+    ibiBoard.appendChild(star);
+    catchState.star = star;
+  }
+
+  function updateCatch() {
+    if (!catchState || !catchState.running || !catchState.star) return;
+    const star = catchState.star;
+    let y = parseFloat(star.style.top) || 0;
+    y += catchState.speed;
+    star.style.top = `${y}px`;
+    const boardRect = ibiBoard.getBoundingClientRect();
+    const starRect = star.getBoundingClientRect();
+    const paddleRect = catchState.paddle.getBoundingClientRect();
+    // Check collision with paddle
+    if (starRect.bottom >= paddleRect.top && starRect.left <= paddleRect.right && starRect.right >= paddleRect.left) {
+      // Caught the star
+      ibiScore += 1;
+      ibiTimer.textContent = ibiScore;
+      // Increase falling speed slightly to add difficulty
+      catchState.speed += 0.2;
+      spawnCatchStar();
+      return;
+    }
+    // If the star hits bottom, reduce a life
+    if (y + star.offsetHeight >= boardRect.height) {
+      catchState.lives -= 1;
+      ibiLivesText.textContent = catchState.lives;
+      if (catchState.lives <= 0) {
+        endCatchGame();
+        return;
+      }
+      // Reset star and continue
+      spawnCatchStar();
+    }
+  }
+
+  function endCatchGame() {
+    if (!catchState) return;
+    catchState.running = false;
+    // Stop the interval
+    if (catchState.interval) {
+      clearInterval(catchState.interval);
+      catchState.interval = null;
+    }
+    // Remove event listeners specific to catch paddle
+    ibiBoard.removeEventListener('mousemove', handleCatchPaddleMove);
+    ibiBoard.removeEventListener('touchstart', handleCatchPaddleTouchMove);
+    ibiBoard.removeEventListener('touchmove', handleCatchPaddleTouchMove);
+    // Remove paddle and star from board
+    if (catchState.paddle) catchState.paddle.remove();
+    if (catchState.star) catchState.star.remove();
+    catchState.paddle = null;
+    catchState.star = null;
+    // Show final message and reset start button
+    ibiMessage.textContent = `Game over. Final score: ${ibiScore}. Press Start to play again.`;
+    ibiStart.textContent = 'Start Game';
+    ibiStarted = false;
+  }
+
+  /* ------------------------------------------------------------------------
+   *                            Dodge Game Logic
+   *
+   * In the Dodge game, the player controls a circular avatar at the bottom of
+   * the board and must avoid falling obstacles. Each obstacle that reaches
+   * the bottom without hitting the player counts as a point. Colliding with
+   * an obstacle removes a life. When all lives are gone the game ends. The
+   * score is shown via the timer display and lives via the lives counter.
+   */
+
+  function startDodgeGame() {
+    // Clear the board and initialise state
+    ibiBoard.innerHTML = '';
+    dodgeState = {
+      lives: 3,
+      player: null,
+      obstacles: [],
+      interval: null,
+      // use spawnTimeout for scheduling and spawnDelay to adjust spawn rate dynamically
+      spawnTimeout: null,
+      spawnDelay: 1200,
+      speed: 3,
+      running: true
+    };
+    ibiScore = 0;
+    ibiTimer.textContent = ibiScore;
+    ibiLivesText.textContent = dodgeState.lives;
+    ibiMessage.textContent = 'Move left and right to avoid the falling obstacles.';
+    // Create player avatar and start spawning obstacles
+    createDodgePlayer();
+    // Spawn the first obstacle; the spawn function will schedule subsequent spawns
+    spawnDodgeObstacle();
+    // Start the update loop for movement and collision detection
+    dodgeState.interval = setInterval(updateDodge, 20);
+  }
+
+  function createDodgePlayer() {
+    const player = document.createElement('div');
+    player.className = 'dodge-player';
+    player.textContent = '★';
+    ibiBoard.appendChild(player);
+    dodgeState.player = player;
+    // Centre the player on the board
+    const boardRect = ibiBoard.getBoundingClientRect();
+    player.style.left = `${(boardRect.width - player.offsetWidth) / 2}px`;
+    // Attach movement handlers
+    ibiBoard.addEventListener('mousemove', handleDodgePlayerMove);
+    ibiBoard.addEventListener('touchstart', handleDodgePlayerTouchMove, { passive: false });
+    ibiBoard.addEventListener('touchmove', handleDodgePlayerTouchMove, { passive: false });
+  }
+
+  function handleDodgePlayerMove(event) {
+    if (!dodgeState || !dodgeState.player) return;
+    const boardRect = ibiBoard.getBoundingClientRect();
+    let x = event.clientX - boardRect.left - dodgeState.player.offsetWidth / 2;
+    x = Math.max(0, Math.min(x, boardRect.width - dodgeState.player.offsetWidth));
+    dodgeState.player.style.left = `${x}px`;
+  }
+
+  function handleDodgePlayerTouchMove(e) {
+    if (!dodgeState || !dodgeState.player) return;
+    const boardRect = ibiBoard.getBoundingClientRect();
+    const touch = e.touches[0];
+    let x = touch.clientX - boardRect.left - dodgeState.player.offsetWidth / 2;
+    x = Math.max(0, Math.min(x, boardRect.width - dodgeState.player.offsetWidth));
+    dodgeState.player.style.left = `${x}px`;
+    e.preventDefault();
+  }
+
+  function spawnDodgeObstacle() {
+    if (!dodgeState || !dodgeState.running) return;
+    const obstacle = document.createElement('div');
+    obstacle.className = 'dodge-obstacle';
+    obstacle.textContent = '▼';
+    // Random horizontal start
+    const boardRect = ibiBoard.getBoundingClientRect();
+    const obsWidth = 40;
+    const maxX = Math.max(0, boardRect.width - obsWidth);
+    const startX = Math.random() * maxX;
+    obstacle.style.left = `${startX}px`;
+    obstacle.style.top = `0px`;
+    ibiBoard.appendChild(obstacle);
+    dodgeState.obstacles.push(obstacle);
+
+    // After spawning an obstacle, schedule the next one based on the current delay.
+    // This replaces the previous fixed setInterval approach and allows the spawn
+    // frequency to increase as the game progresses. Only schedule if the game
+    // is still running.
+    if (dodgeState && dodgeState.running) {
+      // Cancel any pending spawn timeout before scheduling the next one. This
+      // ensures only one spawn timer is active at a time and that the most
+      // recent spawnDelay is used.
+      if (dodgeState.spawnTimeout) {
+        clearTimeout(dodgeState.spawnTimeout);
+      }
+      dodgeState.spawnTimeout = setTimeout(spawnDodgeObstacle, dodgeState.spawnDelay);
+    }
+  }
+
+  function updateDodge() {
+    if (!dodgeState || !dodgeState.running) return;
+    const boardRect = ibiBoard.getBoundingClientRect();
+    const playerRect = dodgeState.player.getBoundingClientRect();
+    // Iterate over a copy of the obstacles array because we may remove elements
+    const obstacles = dodgeState.obstacles.slice();
+    for (const obs of obstacles) {
+      let y = parseFloat(obs.style.top) || 0;
+      y += dodgeState.speed;
+      obs.style.top = `${y}px`;
+      const obsRect = obs.getBoundingClientRect();
+      // Check collision with player
+      if (obsRect.bottom >= playerRect.top &&
+          obsRect.top <= playerRect.bottom &&
+          obsRect.right >= playerRect.left &&
+          obsRect.left <= playerRect.right) {
+        // Collision: lose a life
+        dodgeState.lives -= 1;
+        ibiLivesText.textContent = dodgeState.lives;
+        // Remove obstacle
+        obs.remove();
+        const idx = dodgeState.obstacles.indexOf(obs);
+        if (idx >= 0) dodgeState.obstacles.splice(idx, 1);
+        if (dodgeState.lives <= 0) {
+          endDodgeGame();
+          return;
+        }
+        continue;
+      }
+      // If obstacle passed bottom
+      if (y + obs.offsetHeight >= boardRect.height) {
+        // Avoided: award a point
+        obs.remove();
+        const idx = dodgeState.obstacles.indexOf(obs);
+        if (idx >= 0) dodgeState.obstacles.splice(idx, 1);
+        ibiScore += 1;
+        ibiTimer.textContent = ibiScore;
+        // Increase difficulty: obstacles move faster and spawn more frequently.
+        // Increase the falling speed modestly and reduce the spawn delay so new
+        // obstacles appear sooner. Each avoided obstacle increases speed by
+        // 0.3 and reduces the spawn delay by 100ms down to a minimum of 400ms.
+        dodgeState.speed += 0.3;
+        if (dodgeState.spawnDelay > 400) {
+          dodgeState.spawnDelay = Math.max(400, dodgeState.spawnDelay - 100);
+        }
+      }
+    }
+  }
+
+  function endDodgeGame() {
+    if (!dodgeState) return;
+    dodgeState.running = false;
+    // Clear intervals
+    if (dodgeState.interval) {
+      clearInterval(dodgeState.interval);
+      dodgeState.interval = null;
+    }
+    if (dodgeState.spawnTimeout) {
+      clearTimeout(dodgeState.spawnTimeout);
+      dodgeState.spawnTimeout = null;
+    }
+    // Remove movement handlers
+    ibiBoard.removeEventListener('mousemove', handleDodgePlayerMove);
+    ibiBoard.removeEventListener('touchstart', handleDodgePlayerTouchMove);
+    ibiBoard.removeEventListener('touchmove', handleDodgePlayerTouchMove);
+    // Remove all obstacles and player from the board
+    dodgeState.obstacles.forEach(ob => ob.remove());
+    if (dodgeState.player) dodgeState.player.remove();
+    dodgeState.obstacles = [];
+    dodgeState.player = null;
+    // Show final message and reset start button
+    ibiMessage.textContent = `Game over. Final score: ${ibiScore}. Press Start to play again.`;
+    ibiStart.textContent = 'Start Game';
+    ibiStarted = false;
+  }
+
+  // The Runner game has been removed; all associated functions have been deleted.
+
+  // === MEMORY GAME LOGIC ===
+  // This game tests the player's ability to recall sequences of colours. A sequence of
+  // panels flashes on the screen. After watching, the player must reproduce the sequence
+  // by tapping the coloured panels. Each correct round adds another panel to the sequence
+  // and increases the score. The player has three lives; an incorrect input costs one
+  // life and replays the current sequence. When all lives are lost, the game ends.
+
+  function startMemoryGame() {
+    // Clear the board and initialise the state
+    ibiBoard.innerHTML = '';
+    memoryState = {
+      sequence: [],
+      index: 0,
+      lives: 3,
+      awaitingInput: false,
+      running: true,
+      flashTimeouts: [],
+      board: null
+    };
+    ibiScore = 0;
+    ibiTimer.textContent = ibiScore;
+    ibiLivesText.textContent = memoryState.lives;
+    ibiMessage.textContent = 'Watch the sequence and repeat it.';
+    // Create the 2x2 grid of coloured buttons
+    createMemoryBoard();
+    // Begin the game after a short pause
+    setTimeout(() => {
+      memoryAddStep();
+    }, 600);
+  }
+
+  function createMemoryBoard() {
+    const board = document.createElement('div');
+    board.className = 'memory-board';
+    const colors = ['red', 'blue', 'green', 'yellow'];
+    colors.forEach((col, idx) => {
+      const btn = document.createElement('div');
+      btn.className = 'memory-btn ' + col;
+      btn.dataset.id = idx;
+      // Use a star icon inside each panel for consistent style
+      btn.textContent = '★';
+      btn.addEventListener('click', handleMemoryInput);
+      btn.addEventListener('touchstart', handleMemoryInput, { passive: true });
+      board.appendChild(btn);
+    });
+    ibiBoard.appendChild(board);
+    memoryState.board = board;
+  }
+
+  function memoryAddStep() {
+    if (!memoryState || !memoryState.running) return;
+    // Append a random panel index (0–3) to the sequence
+    memoryState.sequence.push(Math.floor(Math.random() * 4));
+    memoryState.index = 0;
+    memoryState.awaitingInput = false;
+    flashMemorySequence();
+  }
+
+  function flashMemorySequence() {
+    if (!memoryState || !memoryState.running) return;
+    // Cancel any previously scheduled flashes
+    if (memoryState.flashTimeouts) {
+      memoryState.flashTimeouts.forEach((to) => clearTimeout(to));
+    }
+    memoryState.flashTimeouts = [];
+    ibiMessage.textContent = 'Watch closely...';
+    let delay = 0;
+    memoryState.sequence.forEach((step) => {
+      const t = setTimeout(() => {
+        flashMemoryButton(step);
+      }, delay);
+      memoryState.flashTimeouts.push(t);
+      // Each panel is illuminated for 400ms then a 200ms gap
+      delay += 600;
+    });
+    const endT = setTimeout(() => {
+      memoryState.awaitingInput = true;
+      ibiMessage.textContent = 'Your turn!';
+    }, delay);
+    memoryState.flashTimeouts.push(endT);
+  }
+
+  function flashMemoryButton(index) {
+    if (!memoryState || !memoryState.board) return;
+    const btn = memoryState.board.children[index];
+    btn.classList.add('active');
+    setTimeout(() => {
+      btn.classList.remove('active');
+    }, 400);
+  }
+
+  function handleMemoryInput(e) {
+    if (!memoryState || !memoryState.running || !memoryState.awaitingInput) return;
+    const btn = e.currentTarget;
+    const id = parseInt(btn.dataset.id, 10);
+    // Provide immediate tactile feedback
+    btn.classList.add('active');
+    setTimeout(() => {
+      btn.classList.remove('active');
+    }, 200);
+    if (id === memoryState.sequence[memoryState.index]) {
+      memoryState.index += 1;
+      // Sequence completed
+      if (memoryState.index === memoryState.sequence.length) {
+        ibiScore += 1;
+        ibiTimer.textContent = ibiScore;
+        memoryState.awaitingInput = false;
+        setTimeout(() => {
+          memoryAddStep();
+        }, 800);
+      }
+    } else {
+      memoryState.lives -= 1;
+      ibiLivesText.textContent = memoryState.lives;
+      if (memoryState.lives > 0) {
+        memoryState.index = 0;
+        memoryState.awaitingInput = false;
+        ibiMessage.textContent = 'Wrong! Try again.';
+        setTimeout(() => {
+          flashMemorySequence();
+        }, 1000);
+      } else {
+        endMemoryGame();
+      }
+    }
+    // Prevent default to avoid scrolling on touch
+    if (e && e.preventDefault) {
+      e.preventDefault();
+    }
+  }
+
+  function endMemoryGame() {
+    if (!memoryState) return;
+    memoryState.running = false;
+    // Cancel any scheduled flashes
+    if (memoryState.flashTimeouts) {
+      memoryState.flashTimeouts.forEach((to) => clearTimeout(to));
+      memoryState.flashTimeouts = [];
+    }
+    // Remove event handlers and board
+    if (memoryState.board) {
+      const buttons = memoryState.board.querySelectorAll('.memory-btn');
+      buttons.forEach((btn) => {
+        btn.removeEventListener('click', handleMemoryInput);
+        btn.removeEventListener('touchstart', handleMemoryInput);
+      });
+      memoryState.board.remove();
+    }
+    ibiMessage.textContent = `Game over. Final score: ${ibiScore}. Press Start to play again.`;
+    ibiStart.textContent = 'Start Game';
+    ibiStarted = false;
+    memoryState = null;
+  }
+
+  // The Whack game has been removed; all associated functions have been deleted.
+
+  function endCurrentGame(won = false) {
+    clearIntervals();
+    ibiStarted = false;
+    ibiStart.textContent = 'Start Game';
+    if (ibiMode === 'speed') {
+      ibiMessage.textContent = `Time is up! Your score is ${ibiScore}. Press Start to play again.`;
+      if (ibiStar) ibiStar.disabled = true;
+    } else {
+      breakerState.running = false;
+      if (breakerState.ball) breakerState.ball.disabled = true;
+      if (won) {
+        ibiMessage.textContent = `Nice! You cleared all blocks with ${breakerState.lives} lives remaining.`;
+      } else {
+        ibiMessage.textContent = `Game over. Final score: ${ibiScore}. Press Start to try again.`;
+      }
+    }
+  }
+
+  function closeIbiGame() {
+    ibiOverlay.classList.remove('active');
+    clearIntervals();
+    ibiStarted = false;
+  }
+
+  ibiClose.addEventListener('click', closeIbiGame);
+  ibiStart.addEventListener('click', startSelectedGame);
+  // Listen for changes on the game dropdown to select a mode. When the user
+  // chooses a game from the select element, update the current mode and
+  // prepare the UI. Tabs are no longer used.
+  ibiSelect.addEventListener('change', () => {
+    const mode = ibiSelect.value;
+    selectIbiMode(mode);
+  });
+
+  document.addEventListener('keydown', (event) => {
+    if (event.key === 'Escape' && ibiOverlay.classList.contains('active')) {
+      closeIbiGame();
+      return;
+    }
+
+    const key = event.key.toLowerCase();
+    if (!/^[a-z]$/.test(key)) return;
+
+    ibiSequence.push(key);
+    if (ibiSequence.length > IBI_KEYS.length) {
+      ibiSequence.shift();
+    }
+
+    if (ibiSequence.join('') === IBI_KEYS.join('')) {
+      openIbiOverlay();
+    }
+  });
+</script>
 
 </body>
 </html>
