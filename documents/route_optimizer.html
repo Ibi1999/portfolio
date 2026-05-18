@@ -1,0 +1,1139 @@
+<!--
+  Route Optimiser
+
+  This standalone HTML file demonstrates a simple warehouse/storeroom route optimisation.
+  A series of items are randomly scattered across a floorplan. The naive picking
+  route visits them in the order they were generated, while the optimised
+  route uses A* pathfinding and a travelling‐salesperson style dynamic
+  programming solver to minimise travel distance. Both routes are animated
+  side by side and the resulting time and labour cost savings are displayed.
+
+  Colour palette and logo styling are drawn from the provided IbI analytics logo.
+-->
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Route Optimiser</title>
+  <!-- Include the Inter font used in the dashboard for a more professional look -->
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      /* Primary colours sampled from the provided logo */
+      --primary-color: #007ac9;
+      --secondary-color: #005f9d;
+      --accent-color: #0098e4;
+      --background-color: #f5faff;
+      --text-color: #0a2a47;
+      --card: #ffffff;
+      --border: #e5e7eb;
+      --radius: 8px;
+      --shadow: 0 2px 6px rgba(0, 0, 0, 0.05);
+      --muted: #6b7280;
+    }
+
+    body {
+      margin: 0;
+      /* Use the Inter font from the dashboard design for consistency */
+      font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+      background: var(--background-color);
+      color: var(--text-color);
+    }
+
+    header {
+      display: flex;
+      align-items: center;
+      justify-content: flex-start;
+      padding: 1rem 2rem;
+      background: linear-gradient(135deg, var(--primary-color), var(--secondary-color));
+      color: #fff;
+    }
+
+    header img {
+      height: 48px;
+      margin-right: 1rem;
+      background: #fff;
+      padding: 6px;
+      border-radius: 10px;
+      box-shadow: 0 2px 8px rgba(0, 0, 0, 0.12);
+    }
+
+    header h1 {
+      margin: 0;
+      font-size: 1.8rem;
+      font-weight: normal;
+    }
+
+    main {
+      max-width: 1200px;
+      margin: 1rem auto;
+      padding: 0 1rem 2rem;
+    }
+
+    .controls {
+      display: flex;
+      align-items: center;
+      flex-wrap: wrap;
+      margin-bottom: 1rem;
+      gap: 1rem;
+    }
+
+    .control-group {
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+    }
+
+    .range-value {
+      font-weight: bold;
+      color: var(--primary-color);
+      min-width: 24px;
+    }
+
+    .action-btn {
+      background-color: var(--primary-color);
+      border: none;
+      color: #fff;
+      padding: 0.5rem 1rem;
+      border-radius: 4px;
+      cursor: pointer;
+      font-size: 0.9rem;
+      font-weight: 600;
+      transition: background-color 0.2s;
+    }
+
+    .action-btn:hover {
+      background-color: var(--secondary-color);
+    }
+
+    .controls label {
+      font-weight: bold;
+      margin-right: 0.5rem;
+    }
+
+    .controls input[type="range"] {
+      accent-color: var(--accent-color);
+    }
+
+    .controls button {
+      background-color: var(--primary-color);
+      border: none;
+      color: #fff;
+      padding: 0.5rem 1rem;
+      border-radius: 4px;
+      cursor: pointer;
+      font-size: 1rem;
+    }
+
+    .controls button:hover {
+      background-color: var(--secondary-color);
+    }
+
+    /* Style the algorithm select to match the inputs */
+    .controls select {
+      padding: 0.4rem 0.6rem;
+      border-radius: 4px;
+      border: 1px solid var(--border);
+      background: #fff;
+      color: var(--text-color);
+      font-size: 0.9rem;
+    }
+
+    /* Metric dashboard */
+    .metrics-container {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+      gap: 1rem;
+      margin-bottom: 1rem;
+    }
+    .metric-card {
+      background: #fff;
+      border: 1px solid var(--border, #e5e7eb);
+      border-radius: var(--radius, 8px);
+      box-shadow: var(--shadow, 0 2px 6px rgba(0, 0, 0, 0.1));
+      padding: 1rem;
+      text-align: center;
+    }
+    .metric-card .title {
+      font-size: 0.75rem;
+      font-weight: 600;
+      color: var(--muted, #6b7280);
+      text-transform: uppercase;
+      margin-bottom: 0.25rem;
+    }
+    .metric-card .value {
+      font-size: 1.6rem;
+      font-weight: 700;
+      color: var(--primary-color);
+      margin-bottom: 0.25rem;
+    }
+    .metric-card .details {
+      font-size: 0.8rem;
+      color: var(--muted, #6b7280);
+    }
+
+    .boards-container {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(350px, 1fr));
+      gap: 1rem;
+    }
+    
+    .board-wrapper {
+      background: #fff;
+      border: 2px solid var(--primary-color);
+      border-radius: 6px;
+      box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+      padding: 0.5rem;
+      display: flex;
+      flex-direction: column;
+      width: 100%;
+      min-width: 0;
+    }
+
+    .board-wrapper h2 {
+      margin: 0.5rem 0;
+      font-size: 1.2rem;
+      color: var(--primary-color);
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+    }
+
+    /* Small coloured dot used in headings to indicate route type */
+    .legend-dot {
+      display: inline-block;
+      width: 14px;
+      height: 14px;
+      border-radius: 50%;
+    }
+
+    canvas.route-board {
+      border: 1px solid var(--secondary-color);
+      background: var(--background-color);
+      display: block;
+      margin-bottom: 0.5rem;
+      width: 100%;
+      height: 350px;
+    }
+
+    /* Progress bar container */
+    .progress-bar {
+      width: 100%;
+      height: 6px;
+      background: #e5e7eb;
+      border-radius: 3px;
+      overflow: hidden;
+      margin-top: 0.25rem;
+    }
+    .progress-bar .progress {
+      height: 100%;
+      width: 0%;
+      transition: width 0.2s ease;
+    }
+
+    .stats {
+      font-size: 0.9rem;
+      margin-top: auto;
+      color: var(--text-color);
+    }
+
+    .stats span {
+      display: block;
+    }
+
+    @media (max-width: 700px) {
+      .boards-container {
+        flex-direction: column;
+      }
+      .board-wrapper {
+        flex: 1 1 100%;
+      }
+    }
+  </style>
+</head>
+<body>
+  <header>
+    <!-- Embedded logo so this HTML file works standalone without external image files -->
+    <img src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAegAAAEFCAYAAAAoinRQAAAAAXNSR0IArs4c6QAAAARnQU1BAACxjwv8YQUAAAAJcEhZcwAADsEAAA7BAbiRa+0AAAVhaVRYdFhNTDpjb20uYWRvYmUueG1wAAAAAAA8P3hwYWNrZXQgYmVnaW49J++7vycgaWQ9J1c1TTBNcENlaGlIenJlU3pOVGN6a2M5ZCc/Pg0KPHg6eG1wbWV0YSB4bWxuczp4PSJhZG9iZTpuczptZXRhLyI+DQoJPHJkZjpSREYgeG1sbnM6cmRmPSJodHRwOi8vd3d3LnczLm9yZy8xOTk5LzAyLzIyLXJkZi1zeW50YXgtbnMjIj4NCgkJPHJkZjpEZXNjcmlwdGlvbiByZGY6YWJvdXQ9IiIgeG1sbnM6QXR0cmliPSJodHRwOi8vbnMuYXR0cmlidXRpb24uY29tL2Fkcy8xLjAvIj4NCgkJCTxBdHRyaWI6QWRzPg0KCQkJCTxyZGY6U2VxPg0KCQkJCQk8cmRmOmxpIHJkZjpwYXJzZVR5cGU9IlJlc291cmNlIj4NCgkJCQkJCTxBdHRyaWI6Q3JlYXRlZD4yMDI1LTA2LTA3PC9BdHRyaWI6Q3JlYXRlZD4NCgkJCQkJCTxBdHRyaWI6RXh0SWQ+MmQwMTgyYzItZTNmYS00N2RlLTg2ODUtNmMwYTFiYjg1YTRiPC9BdHRyaWI6RXh0SWQ+DQoJCQkJCQk8QXR0cmliOkZiSWQ+NTI1MjY1OTE0MTc5NTgwPC9BdHRyaWI6RmJJZD4NCgkJCQkJCTxBdHRyaWI6VG91Y2hUeXBlPjI8L0F0dHJpYjpUb3VjaFR5cGU+DQoJCQkJCTwvcmRmOmxpPg0KCQkJCTwvcmRmOlNlcT4NCgkJCTwvQXR0cmliOkFkcz4NCgkJPC9yZGY6RGVzY3JpcHRpb24+DQoJCTxyZGY6RGVzY3JpcHRpb24gcmRmOmFib3V0PSIiIHhtbG5zOmRjPSJodHRwOi8vcHVybC5vcmcvZGMvZWxlbWVudHMvMS4xLyI+DQoJCQk8ZGM6dGl0bGU+DQoJCQkJPHJkZjpBbHQ+DQoJCQkJCTxyZGY6bGkgeG1sOmxhbmc9IngtZGVmYXVsdCI+VW50aXRsZWQgZGVzaWduIC0gMTwvcmRmOmxpPg0KCQkJCTwv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" alt="IbI Logo" style="height: 48px; margin-right: 1rem;" />
+    <h1>Route Optimiser</h1>
+  </header>
+  <main>
+    <!-- Removed explanatory paragraph to declutter the interface -->
+    <div class="controls">
+      <div class="control-group">
+        <label for="itemCount">Items:</label>
+        <input type="range" id="itemCount" min="10" max="50" step="1" value="10" />
+        <span id="itemCountLabel" class="range-value">10</span>
+      </div>
+      <div class="control-group">
+        <label for="speedSlider">Speed:</label>
+        <input type="range" id="speedSlider" min="1" max="5" step="1" value="2" />
+        <span id="speedLabel" class="range-value">2x</span>
+      </div>
+      <div class="control-group">
+        <label for="algoSelect">Algorithm:</label>
+        <select id="algoSelect">
+          <option value="astar">A* (Greedy)</option>
+          <option value="dijkstra">Dijkstra</option>
+          <option value="bfs">BFS</option>
+        </select>
+      </div>
+      <button id="generateBtn" class="action-btn">Generate</button>
+      <!-- Start and stop buttons renamed for clarity -->
+      <button id="startBtn" class="action-btn">Start Path</button>
+      <button id="stopBtn" class="action-btn">Stop Path</button>
+      <!-- Buttons for layout editing -->
+      <button id="editBtn" class="action-btn">Edit Layout</button>
+      <button id="resetLayoutBtn" class="action-btn">Reset Layout</button>
+    </div>
+    <!-- Metrics dashboard -->
+    <div class="metrics-container" id="metricsContainer">
+      <div class="metric-card" id="metricNaive">
+        <div class="title">Naive</div>
+        <div class="value" id="naiveCostValue">--</div>
+        <div class="details" id="naiveDetails">--</div>
+      </div>
+      <div class="metric-card" id="metricOptimised">
+        <div class="title">Optimised</div>
+        <div class="value" id="optCostValue">--</div>
+        <div class="details" id="optDetails">--</div>
+      </div>
+      <div class="metric-card" id="metricSavings">
+        <div class="title">Savings</div>
+        <div class="value" id="savingsValue">--</div>
+        <div class="details" id="savingsDetails">--</div>
+      </div>
+    </div>
+    <div class="boards-container">
+      <div class="board-wrapper" id="naiveWrapper">
+        <h2><span class="legend-dot" style="background:#e74c3c"></span>Naive Route</h2>
+        <canvas id="naiveCanvas" class="route-board"></canvas>
+        <div class="progress-bar"><div class="progress" id="naiveProgress" style="background:#e74c3c"></div></div>
+      </div>
+      <div class="board-wrapper" id="optimisedWrapper">
+        <h2><span class="legend-dot" style="background:#27ae60"></span>Optimised Route</h2>
+        <canvas id="optimisedCanvas" class="route-board"></canvas>
+        <div class="progress-bar"><div class="progress" id="optProgress" style="background:#27ae60"></div></div>
+      </div>
+    </div>
+    <!-- Savings summary removed; metrics displayed above -->
+  </main>
+
+  <script>
+    // Grid layout definition: 0 = free, 1 = wall
+    function createGrid() {
+      const rows = 15;
+      const cols = 25;
+      // Initialise with zeros
+      const grid = Array.from({ length: rows }, () => Array(cols).fill(0));
+      // Boundary walls
+      for (let r = 0; r < rows; r++) {
+        grid[r][0] = 1;
+        grid[r][cols - 1] = 1;
+      }
+      for (let c = 0; c < cols; c++) {
+        grid[0][c] = 1;
+        grid[rows - 1][c] = 1;
+      }
+      // Add interior shelves (vertical walls) to simulate aisles
+      const shelves = [4, 5, 10, 11, 16, 17];
+      for (const c of shelves) {
+        for (let r = 1; r < rows - 1; r++) {
+          // Leave a gap at row 7 for crossing aisles
+          if (r === 7) continue;
+          grid[r][c] = 1;
+        }
+      }
+      return grid;
+    }
+
+    // A* pathfinding for grid with obstacles
+    function astar(start, goal, grid) {
+      const rows = grid.length;
+      const cols = grid[0].length;
+      // Directions: up, down, left, right
+      const directions = [
+        [1, 0],
+        [-1, 0],
+        [0, 1],
+        [0, -1],
+      ];
+      const key = (r, c) => `${r},${c}`;
+      const h = (r, c) => Math.abs(r - goal[0]) + Math.abs(c - goal[1]);
+      const openSet = new MinPriorityQueue({ priority: x => x.f });
+      const startNode = { r: start[0], c: start[1], g: 0, f: h(start[0], start[1]), parent: null };
+      openSet.enqueue(startNode);
+      const visited = new Map();
+      visited.set(key(start[0], start[1]), 0);
+      while (!openSet.isEmpty()) {
+        const current = openSet.dequeue().element;
+        if (current.r === goal[0] && current.c === goal[1]) {
+          // reconstruct path
+          const path = [];
+          let node = current;
+          while (node) {
+            path.push([node.r, node.c]);
+            node = node.parent;
+          }
+          path.reverse();
+          return path;
+        }
+        for (const [dr, dc] of directions) {
+          const nr = current.r + dr;
+          const nc = current.c + dc;
+          if (nr < 0 || nr >= rows || nc < 0 || nc >= cols) continue;
+          if (grid[nr][nc] === 1) continue; // wall
+          const newG = current.g + 1;
+          const keyStr = key(nr, nc);
+          if (!visited.has(keyStr) || newG < visited.get(keyStr)) {
+            visited.set(keyStr, newG);
+            const node = {
+              r: nr,
+              c: nc,
+              g: newG,
+              f: newG + h(nr, nc),
+              parent: current,
+            };
+            openSet.enqueue(node);
+          }
+        }
+      }
+      return []; // no path
+    }
+
+    // Priority queue for A* (simple binary heap)
+    class MinPriorityQueue {
+      constructor({ priority }) {
+        this.priority = priority;
+        this.heap = [];
+      }
+      enqueue(item) {
+        this.heap.push(item);
+        this._siftUp(this.heap.length - 1);
+      }
+      dequeue() {
+        if (this.heap.length === 1) return { element: this.heap.pop() };
+        const top = this.heap[0];
+        this.heap[0] = this.heap.pop();
+        this._siftDown(0);
+        return { element: top };
+      }
+      isEmpty() {
+        return this.heap.length === 0;
+      }
+      _siftUp(idx) {
+        let child = idx;
+        while (child > 0) {
+          const parent = Math.floor((child - 1) / 2);
+          if (this.priority(this.heap[child]) >= this.priority(this.heap[parent])) break;
+          [this.heap[child], this.heap[parent]] = [this.heap[parent], this.heap[child]];
+          child = parent;
+        }
+      }
+      _siftDown(idx) {
+        let parent = idx;
+        while (true) {
+          const left = parent * 2 + 1;
+          const right = left + 1;
+          let smallest = parent;
+          if (left < this.heap.length && this.priority(this.heap[left]) < this.priority(this.heap[smallest])) {
+            smallest = left;
+          }
+          if (right < this.heap.length && this.priority(this.heap[right]) < this.priority(this.heap[smallest])) {
+            smallest = right;
+          }
+          if (smallest === parent) break;
+          [this.heap[parent], this.heap[smallest]] = [this.heap[smallest], this.heap[parent]];
+          parent = smallest;
+        }
+      }
+    }
+
+    /**
+     * Dijkstra's algorithm for grids with uniform costs. This is effectively
+     * A* with a zero heuristic but implemented separately for clarity when
+     * comparing algorithms. Returns the shortest path as an array of
+     * [row, col] coordinates.
+     */
+    function dijkstraPath(start, goal, grid) {
+      const rows = grid.length;
+      const cols = grid[0].length;
+      const directions = [
+        [1, 0],
+        [-1, 0],
+        [0, 1],
+        [0, -1],
+      ];
+      const dist = Array.from({ length: rows }, () => Array(cols).fill(Infinity));
+      const parentMap = new Map();
+      const pq = new MinPriorityQueue({ priority: node => node.cost });
+      const startNode = { r: start[0], c: start[1], cost: 0 };
+      dist[startNode.r][startNode.c] = 0;
+      pq.enqueue(startNode);
+      const key = (r, c) => `${r},${c}`;
+      parentMap.set(key(startNode.r, startNode.c), null);
+      while (!pq.isEmpty()) {
+        const { element } = pq.dequeue();
+        const { r, c, cost } = element;
+        if (r === goal[0] && c === goal[1]) {
+          // reconstruct path
+          const path = [];
+          let currKey = key(r, c);
+          while (currKey !== null) {
+            const [cr, cc] = currKey.split(',').map(Number);
+            path.push([cr, cc]);
+            currKey = parentMap.get(currKey);
+          }
+          path.reverse();
+          return path;
+        }
+        if (cost > dist[r][c]) continue;
+        for (const [dr, dc] of directions) {
+          const nr = r + dr;
+          const nc = c + dc;
+          if (nr < 0 || nr >= rows || nc < 0 || nc >= cols) continue;
+          if (grid[nr][nc] === 1) continue;
+          const newCost = cost + 1;
+          if (newCost < dist[nr][nc]) {
+            dist[nr][nc] = newCost;
+            parentMap.set(key(nr, nc), key(r, c));
+            pq.enqueue({ r: nr, c: nc, cost: newCost });
+          }
+        }
+      }
+      return [];
+    }
+
+    /**
+     * Breadth-first search for grids with uniform costs. BFS produces the
+     * shortest path in terms of number of steps when all moves have equal
+     * cost. It is used here to allow the user to compare against other
+     * algorithms.
+     */
+    function bfsPath(start, goal, grid) {
+      const rows = grid.length;
+      const cols = grid[0].length;
+      const directions = [
+        [1, 0],
+        [-1, 0],
+        [0, 1],
+        [0, -1],
+      ];
+      const queue = [];
+      const visited = Array.from({ length: rows }, () => Array(cols).fill(false));
+      const parentMap = new Map();
+      const key = (r, c) => `${r},${c}`;
+      queue.push(start);
+      visited[start[0]][start[1]] = true;
+      parentMap.set(key(start[0], start[1]), null);
+      let head = 0;
+      while (head < queue.length) {
+        const [r, c] = queue[head++];
+        if (r === goal[0] && c === goal[1]) {
+          // reconstruct path
+          const path = [];
+          let currKey = key(r, c);
+          while (currKey !== null) {
+            const [cr, cc] = currKey.split(',').map(Number);
+            path.push([cr, cc]);
+            currKey = parentMap.get(currKey);
+          }
+          path.reverse();
+          return path;
+        }
+        for (const [dr, dc] of directions) {
+          const nr = r + dr;
+          const nc = c + dc;
+          if (nr < 0 || nr >= rows || nc < 0 || nc >= cols) continue;
+          if (grid[nr][nc] === 1) continue;
+          if (!visited[nr][nc]) {
+            visited[nr][nc] = true;
+            parentMap.set(key(nr, nc), key(r, c));
+            queue.push([nr, nc]);
+          }
+        }
+      }
+      return [];
+    }
+
+    /**
+     * Wrapper to select the shortest path algorithm based on the user's choice.
+     * @param {number[]} start starting cell [row, col]
+     * @param {number[]} goal goal cell [row, col]
+     * @param {Array<Array<number>>} grid warehouse grid with walls
+     * @param {string} algorithm algorithm identifier: 'astar', 'dijkstra', 'bfs'
+     */
+    function shortestPath(start, goal, grid, algorithm) {
+      switch (algorithm) {
+        case 'dijkstra':
+          return dijkstraPath(start, goal, grid);
+        case 'bfs':
+          return bfsPath(start, goal, grid);
+        case 'astar':
+        default:
+          return astar(start, goal, grid);
+      }
+    }
+
+    // Compute pairwise distances (shortest path lengths) between start and each item, and between items
+    function computeDistances(start, items, grid) {
+      const n = items.length;
+      const distStart = new Array(n);
+      const pathStart = new Array(n);
+      for (let i = 0; i < n; i++) {
+        const path = astar(start, items[i], grid);
+        pathStart[i] = path;
+        distStart[i] = path.length - 1;
+      }
+      const dist = Array.from({ length: n }, () => new Array(n));
+      const paths = Array.from({ length: n }, () => new Array(n));
+      for (let i = 0; i < n; i++) {
+        for (let j = 0; j < n; j++) {
+          if (i === j) {
+            dist[i][j] = 0;
+            paths[i][j] = [];
+          } else {
+            const path = astar(items[i], items[j], grid);
+            paths[i][j] = path;
+            dist[i][j] = path.length - 1;
+          }
+        }
+      }
+      return { distStart, pathStart, dist, paths };
+    }
+
+    // Solve TSP via dynamic programming to determine order of visiting items
+    function tspOrder(distStart, dist) {
+      const n = distStart.length;
+      const fullMask = 1 << n;
+      const dp = Array.from({ length: fullMask }, () => Array(n).fill(Infinity));
+      const parent = Array.from({ length: fullMask }, () => Array(n).fill(-1));
+      // initial states: start -> item i
+      for (let i = 0; i < n; i++) {
+        const mask = 1 << i;
+        dp[mask][i] = distStart[i];
+      }
+      // iterate over all masks
+      for (let mask = 1; mask < fullMask; mask++) {
+        for (let j = 0; j < n; j++) {
+          if (!(mask & (1 << j))) continue;
+          const prevMask = mask ^ (1 << j);
+          if (prevMask === 0) continue;
+          for (let k = 0; k < n; k++) {
+            if (!(prevMask & (1 << k))) continue;
+            const candidate = dp[prevMask][k] + dist[k][j];
+            if (candidate < dp[mask][j]) {
+              dp[mask][j] = candidate;
+              parent[mask][j] = k;
+            }
+          }
+        }
+      }
+      // find minimum cost ending at any j
+      let bestCost = Infinity;
+      let last = -1;
+      const finalMask = fullMask - 1;
+      for (let j = 0; j < n; j++) {
+        const cost = dp[finalMask][j];
+        if (cost < bestCost) {
+          bestCost = cost;
+          last = j;
+        }
+      }
+      // reconstruct order
+      const order = [];
+      let mask = finalMask;
+      let current = last;
+      while (current !== -1) {
+        order.push(current);
+        const prev = parent[mask][current];
+        mask ^= 1 << current;
+        current = prev;
+      }
+      order.reverse();
+      return { order, bestCost };
+    }
+
+    // Convert grid coordinates to canvas coordinates
+    function toCanvasCoords(cell, canvas, grid) {
+      const [r, c] = cell;
+      const rows = grid.length;
+      const cols = grid[0].length;
+      const cellWidth = canvas.width / cols;
+      const cellHeight = canvas.height / rows;
+      return [c * cellWidth + cellWidth / 2, r * cellHeight + cellHeight / 2];
+    }
+
+    // Draw grid and items on a canvas.
+    function drawGridAndItems(ctx, grid, items, start) {
+      const rows = grid.length;
+      const cols = grid[0].length;
+      const cw = ctx.canvas.width / cols;
+      const ch = ctx.canvas.height / rows;
+      ctx.clearRect(0, 0, ctx.canvas.width, ctx.canvas.height);
+      // draw background
+      ctx.fillStyle = getComputedStyle(document.documentElement).getPropertyValue('--background-color');
+      ctx.fillRect(0, 0, ctx.canvas.width, ctx.canvas.height);
+      // draw walls
+      ctx.fillStyle = getComputedStyle(document.documentElement).getPropertyValue('--primary-color');
+      for (let r = 0; r < rows; r++) {
+        for (let c = 0; c < cols; c++) {
+          if (grid[r][c] === 1) {
+            ctx.fillRect(c * cw, r * ch, cw, ch);
+          }
+        }
+      }
+      // draw start (door)
+      if (start) {
+        const [dx, dy] = toCanvasCoords(start, ctx.canvas, grid);
+        const radius = Math.min(cw, ch) * 0.25;
+        ctx.fillStyle = getComputedStyle(document.documentElement).getPropertyValue('--accent-color');
+        ctx.beginPath();
+        ctx.arc(dx, dy, radius, 0, Math.PI * 2);
+        ctx.fill();
+      }
+      // draw items
+      items.forEach(item => {
+        const [x, y] = toCanvasCoords(item, ctx.canvas, grid);
+        const radius = Math.min(cw, ch) * 0.2;
+        ctx.fillStyle = getComputedStyle(document.documentElement).getPropertyValue('--secondary-color');
+        ctx.beginPath();
+        ctx.arc(x, y, radius, 0, Math.PI * 2);
+        ctx.fill();
+      });
+    }
+
+    // Draw path gradually on canvas. Accepts a delay parameter to slow animation.
+    function animatePath(ctx, grid, items, start, path, delayMs = 100) {
+      const totalSteps = path.length - 1;
+      if (totalSteps <= 0) {
+        return { seconds: 0, cost: 0 };
+      }
+      let index = 0;
+      const rows = grid.length;
+      const cols = grid[0].length;
+      const cw = ctx.canvas.width / cols;
+      const ch = ctx.canvas.height / rows;
+      const primary = getComputedStyle(document.documentElement).getPropertyValue('--primary-color');
+      const accent = getComputedStyle(document.documentElement).getPropertyValue('--accent-color');
+      function drawStep() {
+        drawGridAndItems(ctx, grid, items, start);
+        ctx.strokeStyle = primary.trim();
+        ctx.lineWidth = 3;
+        ctx.beginPath();
+        let [cx, cy] = toCanvasCoords(path[0], ctx.canvas, grid);
+        ctx.moveTo(cx, cy);
+        for (let i = 1; i <= index; i++) {
+          const [nx, ny] = toCanvasCoords(path[i], ctx.canvas, grid);
+          ctx.lineTo(nx, ny);
+        }
+        ctx.stroke();
+        // moving dot
+        const [mx, my] = toCanvasCoords(path[index], ctx.canvas, grid);
+        const radius = Math.min(cw, ch) * 0.25;
+        ctx.fillStyle = accent.trim();
+        ctx.beginPath();
+        ctx.arc(mx, my, radius, 0, Math.PI * 2);
+        ctx.fill();
+        if (index < totalSteps) {
+          index++;
+          setTimeout(drawStep, delayMs);
+        }
+      }
+      drawStep();
+      // compute stats (time and cost)
+      const seconds = totalSteps;
+      const cost = ((seconds / 3600) * 15).toFixed(2);
+      return { seconds, cost: parseFloat(cost) };
+    }
+
+    // Generate random item positions on free cells
+    function generateItems(grid, count, start) {
+      const freeCells = [];
+      for (let r = 0; r < grid.length; r++) {
+        for (let c = 0; c < grid[0].length; c++) {
+          if (grid[r][c] === 0 && !(r === start[0] && c === start[1])) {
+            freeCells.push([r, c]);
+          }
+        }
+      }
+      const items = [];
+      while (items.length < count && freeCells.length > 0) {
+        const idx = Math.floor(Math.random() * freeCells.length);
+        items.push(freeCells.splice(idx, 1)[0]);
+      }
+      return items;
+    }
+
+    // Main execution
+    (function () {
+      // Use a mutable grid so the layout can be edited and reset
+      let grid = createGrid();
+      const start = [14, 1]; // door position near bottom left
+      const itemCountSlider = document.getElementById('itemCount');
+      const itemCountLabel = document.getElementById('itemCountLabel');
+      const speedSlider = document.getElementById('speedSlider');
+      const speedLabel = document.getElementById('speedLabel');
+      const algoSelect = document.getElementById('algoSelect');
+      const generateBtn = document.getElementById('generateBtn');
+      const startBtn = document.getElementById('startBtn');
+      const stopBtn = document.getElementById('stopBtn');
+      const editBtn = document.getElementById('editBtn');
+      const resetLayoutBtn = document.getElementById('resetLayoutBtn');
+      const naiveCanvas = document.getElementById('naiveCanvas');
+      const optimisedCanvas = document.getElementById('optimisedCanvas');
+      // Ensure canvas dimensions match CSS size
+      function resizeCanvases() {
+        naiveCanvas.width = naiveCanvas.clientWidth;
+        naiveCanvas.height = naiveCanvas.clientHeight;
+        optimisedCanvas.width = optimisedCanvas.clientWidth;
+        optimisedCanvas.height = optimisedCanvas.clientHeight;
+      }
+      resizeCanvases();
+      const naiveCtx = naiveCanvas.getContext('2d');
+      const optimisedCtx = optimisedCanvas.getContext('2d');
+      // Stats containers removed; metrics displayed in dashboard
+
+      // Additional canvases for pre‑rendering static backgrounds
+      const naiveBgCanvas = document.createElement('canvas');
+      const optBgCanvas = document.createElement('canvas');
+      const naiveBgCtx = naiveBgCanvas.getContext('2d');
+      const optBgCtx = optBgCanvas.getContext('2d');
+
+      // Global state for items and paths
+      let items = [];
+      let naivePath = [];
+      let optPath = [];
+      let naiveIndex = 0;
+      let optIndex = 0;
+      let naiveIntervalId = null;
+      let optIntervalId = null;
+      let speed = parseInt(document.getElementById('speedSlider').value, 10);
+
+      // State for editing and algorithm selection
+      let editing = false;
+      let algorithm = algoSelect.value;
+
+      // Colour palette for path animation
+      const badColor = '#e74c3c';
+      const goodColor = '#27ae60';
+
+      // Update item count label
+      itemCountSlider.addEventListener('input', () => {
+        itemCountLabel.textContent = itemCountSlider.value;
+      });
+
+      // Update speed when slider changes
+      speedSlider.addEventListener('input', () => {
+        updateSpeed();
+      });
+
+      // Update algorithm selection
+      algoSelect.addEventListener('change', () => {
+        algorithm = algoSelect.value;
+        // Regenerate simulation with new algorithm
+        generateSimulation();
+      });
+
+      // Toggle editing mode for layout editing. When active, clicking on the
+      // naive canvas toggles a cell between free and wall. The button text
+      // reflects the current mode.
+      editBtn.addEventListener('click', () => {
+        editing = !editing;
+        editBtn.textContent = editing ? 'Stop Editing' : 'Edit Layout';
+        // When exiting editing mode, regenerate paths to reflect any layout changes
+        if (!editing) {
+          generateSimulation();
+        }
+      });
+
+      // Reset the layout to the default configuration and regenerate
+      resetLayoutBtn.addEventListener('click', () => {
+        grid = createGrid();
+        generateSimulation();
+      });
+
+      // Handle click events on the naive canvas for layout editing
+      naiveCanvas.addEventListener('click', (event) => {
+        if (!editing) return;
+        // Determine which cell was clicked
+        const rect = naiveCanvas.getBoundingClientRect();
+        const x = event.clientX - rect.left;
+        const y = event.clientY - rect.top;
+        const rows = grid.length;
+        const cols = grid[0].length;
+        const cw = naiveCanvas.width / cols;
+        const ch = naiveCanvas.height / rows;
+        const col = Math.floor(x / cw);
+        const row = Math.floor(y / ch);
+        // Do not allow editing of boundary walls (row 0 or rows-1, col 0 or cols-1) or the door location
+        if (row <= 0 || row >= rows - 1 || col <= 0 || col >= cols - 1) return;
+        if (row === start[0] && col === start[1]) return;
+        // Toggle cell between free (0) and wall (1)
+        grid[row][col] = grid[row][col] === 1 ? 0 : 1;
+        // Redraw background immediately for feedback but do not recompute paths until editing stops
+        drawGridAndItems(naiveBgCtx, grid, items, start);
+        naiveCtx.drawImage(naiveBgCanvas, 0, 0);
+        drawGridAndItems(optBgCtx, grid, items, start);
+        optimisedCtx.drawImage(optBgCanvas, 0, 0);
+      });
+
+      /**
+       * Precompute paths and metrics for a new set of item positions. This clears any
+       * active animations, resets indices and draws static boards. It does not
+       * automatically start the animations.
+       */
+      function generateSimulation() {
+        // Pause any running animations
+        pauseAnimation();
+        // Generate items and compute paths
+        const count = parseInt(itemCountSlider.value, 10);
+        items = generateItems(grid, count, start);
+        // Build naive path: visit items in generated order
+        naivePath = [];
+        let current = start;
+        items.forEach(item => {
+          const segment = shortestPath(current, item, grid, algorithm);
+          if (segment.length > 0) {
+            if (naivePath.length > 0) segment.shift();
+            naivePath = naivePath.concat(segment);
+            current = item;
+          }
+        });
+        // Build optimised path via greedy nearest neighbour
+        optPath = [];
+        let remaining = items.slice();
+        current = start;
+        while (remaining.length > 0) {
+          let bestIndex = 0;
+          let bestDist = Infinity;
+          for (let i = 0; i < remaining.length; i++) {
+            const pathCandidate = shortestPath(current, remaining[i], grid, algorithm);
+            const distCandidate = pathCandidate.length;
+            if (distCandidate < bestDist) {
+              bestDist = distCandidate;
+              bestIndex = i;
+            }
+          }
+          const chosen = remaining.splice(bestIndex, 1)[0];
+          const segment = shortestPath(current, chosen, grid, algorithm);
+          if (segment.length > 0) {
+            if (optPath.length > 0) segment.shift();
+            optPath = optPath.concat(segment);
+            current = chosen;
+          }
+        }
+        // Reset indices for new run
+        naiveIndex = 0;
+        optIndex = 0;
+        // Resize canvases just in case the layout changed
+        resizeCanvases();
+        // Pre-render backgrounds for each board
+        naiveBgCanvas.width = naiveCanvas.width;
+        naiveBgCanvas.height = naiveCanvas.height;
+        optBgCanvas.width = optimisedCanvas.width;
+        optBgCanvas.height = optimisedCanvas.height;
+        drawGridAndItems(naiveBgCtx, grid, items, start);
+        drawGridAndItems(optBgCtx, grid, items, start);
+        // Draw backgrounds onto visible canvases
+        naiveCtx.drawImage(naiveBgCanvas, 0, 0);
+        optimisedCtx.drawImage(optBgCanvas, 0, 0);
+        // Compute metrics using path lengths (number of steps = length-1)
+        const naiveSteps = Math.max(0, naivePath.length - 1);
+        const optSteps = Math.max(0, optPath.length - 1);
+        const naiveTimeMin = (naiveSteps / 60).toFixed(1);
+        const optTimeMin = (optSteps / 60).toFixed(1);
+        const naiveCost = ((naiveSteps / 3600) * 15).toFixed(2);
+        const optCost = ((optSteps / 3600) * 15).toFixed(2);
+        const diffSteps = naiveSteps - optSteps;
+        const diffCost = (naiveCost - optCost).toFixed(2);
+        // Update metric cards
+        document.getElementById('naiveCostValue').textContent = `£${naiveCost}`;
+        document.getElementById('naiveDetails').textContent = `${naiveSteps} steps • ${naiveTimeMin} min`;
+        document.getElementById('optCostValue').textContent = `£${optCost}`;
+        document.getElementById('optDetails').textContent = `${optSteps} steps • ${optTimeMin} min`;
+        document.getElementById('savingsValue').textContent = `£${diffCost}`;
+        document.getElementById('savingsDetails').textContent = `${diffSteps} steps saved`;
+
+        // Reset progress bars for new simulation
+        const naiveProgressBar = document.getElementById('naiveProgress');
+        const optProgressBar = document.getElementById('optProgress');
+        if (naiveProgressBar) naiveProgressBar.style.width = '0%';
+        if (optProgressBar) optProgressBar.style.width = '0%';
+      }
+
+      /**
+       * Draw the next segment of the naive path. Uses the pre-rendered
+       * background and draws only the portion of the route traversed so far.
+       */
+      function stepNaive() {
+        if (naiveIndex >= naivePath.length) {
+          clearInterval(naiveIntervalId);
+          naiveIntervalId = null;
+          return;
+        }
+        // Copy static background
+        naiveCtx.drawImage(naiveBgCanvas, 0, 0);
+        // Draw path
+        naiveCtx.strokeStyle = badColor;
+        naiveCtx.lineWidth = 3;
+        naiveCtx.beginPath();
+        let [cx, cy] = toCanvasCoords(naivePath[0], naiveCanvas, grid);
+        naiveCtx.moveTo(cx, cy);
+        for (let i = 1; i <= naiveIndex; i++) {
+          const [nx, ny] = toCanvasCoords(naivePath[i], naiveCanvas, grid);
+          naiveCtx.lineTo(nx, ny);
+        }
+        naiveCtx.stroke();
+        // Draw moving dot
+        const [mx, my] = toCanvasCoords(naivePath[naiveIndex], naiveCanvas, grid);
+        const rows = grid.length;
+        const cols = grid[0].length;
+        const cw = naiveCanvas.width / cols;
+        const ch = naiveCanvas.height / rows;
+        const radius = Math.min(cw, ch) * 0.25;
+        naiveCtx.fillStyle = badColor;
+        naiveCtx.beginPath();
+        naiveCtx.arc(mx, my, radius, 0, Math.PI * 2);
+        naiveCtx.fill();
+
+        // Update progress bar width
+        const progressEl = document.getElementById('naiveProgress');
+        if (progressEl && naivePath.length > 1) {
+          const percent = (naiveIndex / (naivePath.length - 1)) * 100;
+          progressEl.style.width = `${percent}%`;
+        }
+        // Update real‑time metrics for naive route
+        const partialSteps = naiveIndex;
+        const partialTimeMin = (partialSteps / 60).toFixed(1);
+        const partialCost = ((partialSteps / 3600) * 15).toFixed(2);
+        document.getElementById('naiveCostValue').textContent = `£${partialCost}`;
+        document.getElementById('naiveDetails').textContent = `${partialSteps} steps • ${partialTimeMin} min`;
+        // Also update savings metrics based on the difference from optimised partial cost (computed in stepOpt)
+        naiveIndex++;
+      }
+
+      /**
+       * Draw the next segment of the optimised path.
+       */
+      function stepOpt() {
+        if (optIndex >= optPath.length) {
+          clearInterval(optIntervalId);
+          optIntervalId = null;
+          return;
+        }
+        // Copy static background
+        optimisedCtx.drawImage(optBgCanvas, 0, 0);
+        // Draw path
+        optimisedCtx.strokeStyle = goodColor;
+        optimisedCtx.lineWidth = 3;
+        optimisedCtx.beginPath();
+        let [cx, cy] = toCanvasCoords(optPath[0], optimisedCanvas, grid);
+        optimisedCtx.moveTo(cx, cy);
+        for (let i = 1; i <= optIndex; i++) {
+          const [nx, ny] = toCanvasCoords(optPath[i], optimisedCanvas, grid);
+          optimisedCtx.lineTo(nx, ny);
+        }
+        optimisedCtx.stroke();
+        // Draw moving dot
+        const [mx, my] = toCanvasCoords(optPath[optIndex], optimisedCanvas, grid);
+        const rows = grid.length;
+        const cols = grid[0].length;
+        const cw = optimisedCanvas.width / cols;
+        const ch = optimisedCanvas.height / rows;
+        const radius = Math.min(cw, ch) * 0.25;
+        optimisedCtx.fillStyle = goodColor;
+        optimisedCtx.beginPath();
+        optimisedCtx.arc(mx, my, radius, 0, Math.PI * 2);
+        optimisedCtx.fill();
+
+        // Update progress bar width
+        const progressEl = document.getElementById('optProgress');
+        if (progressEl && optPath.length > 1) {
+          const percent = (optIndex / (optPath.length - 1)) * 100;
+          progressEl.style.width = `${percent}%`;
+        }
+        // Update real‑time metrics for optimised route and savings
+        const optPartialSteps = optIndex;
+        const optPartialTimeMin = (optPartialSteps / 60).toFixed(1);
+        const optPartialCost = ((optPartialSteps / 3600) * 15).toFixed(2);
+        document.getElementById('optCostValue').textContent = `£${optPartialCost}`;
+        document.getElementById('optDetails').textContent = `${optPartialSteps} steps • ${optPartialTimeMin} min`;
+        // Update savings by comparing naive and optimised partials
+        const naiveCostTxt = document.getElementById('naiveCostValue').textContent.replace('£', '');
+        const naiveCostNum = parseFloat(naiveCostTxt) || 0;
+        const savings = (naiveCostNum - parseFloat(optPartialCost)).toFixed(2);
+        const naiveStepsTxt = document.getElementById('naiveDetails').textContent.split(' ')[0];
+        const naiveStepsNum = parseInt(naiveStepsTxt, 10) || 0;
+        const stepSavings = naiveStepsNum - optPartialSteps;
+        document.getElementById('savingsValue').textContent = `£${savings}`;
+        document.getElementById('savingsDetails').textContent = `${stepSavings} steps saved`;
+        optIndex++;
+      }
+
+      /**
+       * Start the animation for both routes. Uses the global speed variable to
+       * determine interval delay. Does nothing if already running or there
+       * are no paths to animate.
+       */
+      function startAnimation() {
+        // Ensure there is something to animate
+        if (!naivePath || naivePath.length === 0 || !optPath || optPath.length === 0) return;
+        // If either interval is active, do nothing
+        if (naiveIntervalId || optIntervalId) return;
+        // Base delay of 500ms divided by speed (slower animation for clarity)
+        const delay = 500 / speed;
+        naiveIntervalId = setInterval(stepNaive, delay);
+        optIntervalId = setInterval(stepOpt, delay);
+      }
+
+      /**
+       * Pause (or stop) the animation for both routes.
+       */
+      function pauseAnimation() {
+        if (naiveIntervalId) {
+          clearInterval(naiveIntervalId);
+          naiveIntervalId = null;
+        }
+        if (optIntervalId) {
+          clearInterval(optIntervalId);
+          optIntervalId = null;
+        }
+      }
+
+      /**
+       * Update the speed multiplier and, if animations are running, restart them
+       * at the new speed while preserving progress.
+       */
+      function updateSpeed() {
+        speed = parseInt(speedSlider.value, 10);
+        speedLabel.textContent = `${speed}x`;
+        // If currently animating, restart with new delay
+        const running = naiveIntervalId || optIntervalId;
+        if (running) {
+          // store current indices
+          pauseAnimation();
+          // restart intervals
+          startAnimation();
+        }
+      }
+
+      // Hook up UI buttons to behaviours
+      generateBtn.addEventListener('click', generateSimulation);
+      startBtn.addEventListener('click', () => {
+        startAnimation();
+      });
+      stopBtn.addEventListener('click', () => {
+        pauseAnimation();
+      });
+
+      // Generate the initial simulation on load but do not start animation automatically
+      generateSimulation();
+
+      // Initialise speed label based on current slider value
+      updateSpeed();
+    })();
+  </script>
+</body>
+</html>
