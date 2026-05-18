@@ -21,6 +21,7 @@
   <link rel="preload" as="image" href="images/clustering.gif">
   <link rel="preload" as="image" href="images/prediction.gif">
   <link rel="preload" as="image" href="images/sentiment.gif">
+  <link rel="preload" as="image" href="images/route.gif">
   <link rel="preload" as="image" href="images/game.gif">
   <link rel="preload" as="image" href="images/player.gif">
   <link rel="preload" as="image" href="images/match.gif">
@@ -307,7 +308,7 @@ header {
   }
 
   .hero-text {
-    flex: 1 1 340px;
+    flex: 0.95 1 340px;
   }
 
   .hero-text h1 {
@@ -322,13 +323,13 @@ header {
   }
 
   .hero-image {
-    flex: 1 1 340px;
+    flex: 1.25 1 420px;
     text-align: center;
   }
 
   .hero-art {
     width: 100%;
-    max-width: clamp(320px, 50vw, 560px);
+    max-width: clamp(420px, 58vw, 720px);
   }
 
   .btn-primary {
@@ -1001,7 +1002,7 @@ body:not(.dark) .starfield {
       </div>
     </div>
     <div class="hero-image">
-      <img src="images/avatar.png" alt="Illustration of Ibrahim at his laptop" class="hero-art" />
+      <img src="images/avatar.gif" alt="Illustration of Ibrahim at his laptop" class="hero-art" />
     </div>
   </div>
 </section>
@@ -1049,6 +1050,16 @@ body:not(.dark) .starfield {
             <div class="links">
               <a href="documents/dashboard.html" class="project-btn with-preview" data-preview="images/graph.gif" target="_blank">Live Demo</a>
               <a href="documents/presentation.html" target="_blank">Project Review</a>
+            </div>
+          </div>
+
+          <div class="project-card animate-on-scroll">
+            <div class="icon"><i class="fas fa-route"></i></div>
+            <h3>Route Optimisation</h3>
+            <p>Using AI pathfinding algorithms to optimise warehouse picking routes and improve operational efficiency.</p>
+            <div class="links">
+              <a href="route_optimizer.html" class="project-btn with-preview" data-preview="images/route.gif" target="_blank">Live&nbsp;Demo</a>
+              <a href="route_optimizer_presentation.html" target="_blank">Project&nbsp;Review</a>
             </div>
           </div>
 
